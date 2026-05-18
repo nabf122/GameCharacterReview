@@ -30,9 +30,12 @@
 
 ```bash
 git pull
+rmdir /s /q node_modules
 npm install
 npm run dev
 ```
+
+이미 개발 서버가 켜져 있었다면 `Ctrl + C`로 완전히 종료한 뒤 다시 실행하세요. Vite가 이전 변환 캐시를 들고 있으면 `node_modules/.vite` 폴더를 삭제한 뒤 재실행해도 됩니다.
 
 ## 시작하기
 
