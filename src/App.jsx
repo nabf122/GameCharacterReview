@@ -85,22 +85,22 @@ const initialNikkes = [
   },
 ];
 
-function createEmptyForm() {
-  return {
-    name: '',
-    rarity: 'SSR',
-    manufacturer: manufacturers[0],
-    classType: classes[0],
-    burst: bursts[0],
-    code: codes[0],
-    weapon: weapons[0],
-    squadRole: '',
-    skill1: '',
-    skill2: '',
-    burstSkill: '',
-    imageUrl: '',
-  };
-}
+const createEmptyForm = () => ({
+const emptyForm = {
+  name: '',
+  rarity: 'SSR',
+  manufacturer: manufacturers[0],
+  classType: classes[0],
+  burst: bursts[0],
+  code: codes[0],
+  weapon: weapons[0],
+  squadRole: '',
+  skill1: '',
+  skill2: '',
+  burstSkill: '',
+  imageUrl: '',
+});
+};
 
 const matchesNikkeKeyword = (nikke, keyword) => {
   if (!keyword) {
@@ -127,6 +127,12 @@ const matchesNikkeKeyword = (nikke, keyword) => {
 function App() {
   const [nikkes, setNikkes] = useState(initialNikkes);
   const [form, setForm] = useState(createEmptyForm);
+  imageUrl: '',
+};
+
+function App() {
+  const [nikkes, setNikkes] = useState(initialNikkes);
+  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [squadIds, setSquadIds] = useState([1, 2, 3, 4]);
   const [screen, setScreen] = useState('squad');
@@ -154,6 +160,19 @@ function App() {
     const keyword = manageQuery.trim().toLowerCase();
     return nikkes.filter((nikke) => matchesNikkeKeyword(nikke, keyword));
   }, [manageQuery, nikkes]);
+
+      const matchesQuery =
+        !keyword ||
+        nikke.name.toLowerCase().includes(keyword) ||
+        nikke.manufacturer.toLowerCase().includes(keyword) ||
+        nikke.classType.toLowerCase().includes(keyword) ||
+        nikke.code.toLowerCase().includes(keyword) ||
+        nikke.weapon.toLowerCase().includes(keyword);
+      const matchesBurst = burstFilter === 'all' || nikke.burst === burstFilter;
+
+      return matchesQuery && matchesBurst;
+    });
+  }, [burstFilter, nikkes, query]);
 
   const squadAnalysis = useMemo(() => {
     const burstCounts = bursts.reduce((counts, burst) => {
@@ -185,6 +204,7 @@ function App() {
 
   const resetForm = () => {
     setForm(createEmptyForm());
+    setForm(emptyForm);
     setEditingId(null);
   };
 
@@ -325,6 +345,11 @@ function App() {
     return (
       <li key={nikke.id} className={`nikkeCard ${selected ? 'selected' : ''}`}>
         {renderNikkeImage(nikke)}
+        <img
+          className="portrait"
+          src={nikke.imageUrl || 'https://placehold.co/360x240?text=NIKKE'}
+          alt={`${nikke.name} 이미지`}
+        />
         <div className="cardBody">
           <div className="titleRow">
             <strong>{nikke.name}</strong>
@@ -367,6 +392,7 @@ function App() {
           <p className="eyebrow">Goddess of Victory: NIKKE</p>
           <h1>승리의 여신: 니케 스쿼드 빌더</h1>
           <p>니케 이미지를 드래그해 5인 스쿼드를 구성하고, 이미지 hover로 스킬 정보를 확인하세요.</p>
+          <p>니케 풀을 등록하고 5인 스쿼드를 구성하며 버스트/병과 균형을 확인하세요.</p>
         </div>
         <div className="summaryGrid" aria-label="스쿼드 요약">
           <span>보유 니케 <strong>{nikkes.length}</strong></span>
@@ -391,6 +417,7 @@ function App() {
               <div>
                 <h2>현재 스쿼드</h2>
                 <p>니케 이미지를 슬롯으로 드래그앤드롭해 최대 5명까지 편성할 수 있습니다.</p>
+                <p>최대 5명까지 편성할 수 있습니다.</p>
               </div>
               <button type="button" className="button ghost" onClick={clearSquad} disabled={!squad.length}>
                 스쿼드 비우기
@@ -413,12 +440,17 @@ function App() {
                     {nikke ? (
                       <>
                         {renderNikkeImage(nikke, 'slotImage')}
+                  <div key={nikke?.id || `empty-${index}`} className={`slot ${nikke ? 'filled' : ''}`}>
+                    {nikke ? (
+                      <>
+                        <img src={nikke.imageUrl || 'https://placehold.co/240x160?text=NIKKE'} alt={`${nikke.name} 이미지`} />
                         <strong>{nikke.name}</strong>
                         <span>{nikke.burst} · {nikke.classType}</span>
                         <button type="button" onClick={() => removeFromSquad(nikke.id)}>제거</button>
                       </>
                     ) : (
                       <span>여기로 드롭<br />빈 슬롯 {index + 1}</span>
+                      <span>빈 슬롯 {index + 1}</span>
                     )}
                   </div>
                 );
@@ -454,6 +486,7 @@ function App() {
               <div>
                 <h2>니케 선택</h2>
                 <p>이미지를 스쿼드 슬롯으로 드래그하거나 버튼으로 편성하세요.</p>
+                <p>검색과 버스트 필터로 편성 후보를 좁혀보세요.</p>
               </div>
             </div>
             <div className="filters">
@@ -461,6 +494,7 @@ function App() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="이름/기업/병과/코드/무기/스킬 검색"
+                placeholder="이름/기업/병과/코드/무기 검색"
               />
               <select value={burstFilter} onChange={(event) => setBurstFilter(event.target.value)}>
                 <option value="all">전체 버스트</option>
@@ -580,6 +614,8 @@ function App() {
             </div>
             <p className="resultInfo">검색 결과 {filteredManagedNikkes.length}명</p>
             <ul className="cardList">{filteredManagedNikkes.map((nikke) => renderNikkeCard(nikke, 'manage'))}</ul>
+            <h2>등록된 니케</h2>
+            <ul className="cardList">{nikkes.map((nikke) => renderNikkeCard(nikke, 'manage'))}</ul>
           </section>
         </>
       )}
