@@ -186,6 +186,7 @@ button:disabled {
 }
 
 .slotImage {
+.slot img {
   width: 100%;
   height: 112px;
   object-fit: cover;
