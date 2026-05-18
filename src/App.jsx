@@ -85,6 +85,7 @@ const initialNikkes = [
   },
 ];
 
+const createEmptyForm = () => ({
 const emptyForm = {
   name: '',
   rarity: 'SSR',
@@ -98,6 +99,7 @@ const emptyForm = {
   skill2: '',
   burstSkill: '',
   imageUrl: '',
+});
 };
 
 const matchesNikkeKeyword = (nikke, keyword) => {
@@ -122,6 +124,9 @@ const matchesNikkeKeyword = (nikke, keyword) => {
     .includes(keyword);
 };
 
+function App() {
+  const [nikkes, setNikkes] = useState(initialNikkes);
+  const [form, setForm] = useState(createEmptyForm);
   imageUrl: '',
 };
 
@@ -198,6 +203,7 @@ function App() {
   };
 
   const resetForm = () => {
+    setForm(createEmptyForm());
     setForm(emptyForm);
     setEditingId(null);
   };
