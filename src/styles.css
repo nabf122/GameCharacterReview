@@ -15,7 +15,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -25,10 +26,10 @@ button:disabled {
 }
 
 .container {
-  width: min(1120px, calc(100% - 32px));
-  margin: 32px auto;
+  width: min(1280px, calc(100% - 24px));
+  margin: 14px auto;
   display: grid;
-  gap: 18px;
+  gap: 10px;
 }
 
 .hero,
@@ -42,15 +43,15 @@ button:disabled {
 .hero {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 18px;
+  gap: 12px;
   align-items: center;
-  padding: 28px;
+  padding: 14px 16px;
 }
 
 .eyebrow {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   color: #db2777;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -63,8 +64,13 @@ button:disabled {
 }
 
 .hero h1 {
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  line-height: 1.05;
+  font-size: clamp(1.45rem, 2.4vw, 2.35rem);
+  line-height: 1.08;
+}
+
+.hero p:not(.eyebrow) {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
 }
 
 .hero p:not(.eyebrow),
@@ -76,14 +82,14 @@ button:disabled {
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(92px, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .summaryGrid span {
   display: grid;
-  gap: 4px;
-  padding: 14px;
-  border-radius: 16px;
+  gap: 2px;
+  padding: 9px 10px;
+  border-radius: 10px;
   background: #f8fafc;
   color: #64748b;
   font-size: 0.84rem;
@@ -91,12 +97,12 @@ button:disabled {
 
 .summaryGrid strong {
   color: #111827;
-  font-size: 1.35rem;
+  font-size: 1.05rem;
 }
 
 .screenTabs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tab,
@@ -108,7 +114,7 @@ button:disabled {
 }
 
 .tab {
-  padding: 12px 18px;
+  padding: 9px 14px;
   background: #e2e8f0;
   color: #334155;
 }
@@ -119,16 +125,43 @@ button:disabled {
   color: #fff;
 }
 
+.apiStatus {
+  padding: 9px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.apiStatus.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.importMessage {
+  margin: -2px 0 10px;
+  color: #047857;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
 .panel {
-  padding: 22px;
+  padding: 14px;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
+}
+
+.sectionHeader h2 {
+  font-size: 1.05rem;
 }
 
 .sectionHeader p,
@@ -137,7 +170,7 @@ button:disabled {
 }
 
 .button {
-  padding: 10px 16px;
+  padding: 8px 12px;
 }
 
 .button.ghost {
@@ -150,24 +183,31 @@ button:disabled {
 }
 
 .button.small {
-  padding: 8px 12px;
+  padding: 7px 10px;
   font-size: 0.86rem;
+}
+
+.squadWorkspace {
+  display: grid;
+  grid-template-columns: minmax(620px, 1.35fr) minmax(360px, 0.65fr);
+  gap: 10px;
+  align-items: start;
 }
 
 .squadSlots {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
 .slot {
-  min-height: 220px;
+  min-height: 142px;
   display: grid;
   place-items: center;
-  gap: 8px;
-  padding: 12px;
+  gap: 5px;
+  padding: 8px;
   border: 1px dashed #cbd5e1;
-  border-radius: 18px;
+  border-radius: 12px;
   background: #f8fafc;
   color: #94a3b8;
   text-align: center;
@@ -186,39 +226,130 @@ button:disabled {
 }
 
 .slotImage {
-.slot img {
   width: 100%;
-  height: 112px;
+  height: 78px;
   object-fit: cover;
-  border-radius: 14px;
+  border-radius: 9px;
+}
+
+.slot strong,
+.slot span {
+  font-size: 0.82rem;
+  line-height: 1.2;
 }
 
 .slot button {
   border: 0;
   border-radius: 999px;
-  padding: 7px 12px;
+  padding: 5px 9px;
   background: #fee2e2;
   color: #991b1b;
   cursor: pointer;
   font-weight: 700;
+  font-size: 0.78rem;
 }
 
 .analysisGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .analysisGrid > div {
-  padding: 14px;
-  border-radius: 16px;
+  padding: 10px;
+  border-radius: 10px;
   background: #f8fafc;
 }
 
 .analysisGrid p {
-  margin: 8px 0 0;
+  margin: 5px 0 0;
   color: #475569;
+  font-size: 0.82rem;
+}
+
+.analysisGrid h3 {
+  font-size: 0.92rem;
+}
+
+.buffSummary {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.buffHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.buffHeader h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.buffHeader span {
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.buffColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.buffColumns > div {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.buffColumns strong {
+  color: #1e293b;
+  font-size: 0.86rem;
+}
+
+.buffItem {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.buffItem summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  cursor: pointer;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.buffItem summary span {
+  color: #2563eb;
+  white-space: nowrap;
+}
+
+.buffItem p,
+.emptyBuff {
+  margin: 0;
+  padding: 0 8px 8px;
+  color: #475569;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.buffItem b {
+  display: block;
+  margin: 2px 0;
+  color: #0f172a;
 }
 
 .passed {
@@ -238,7 +369,7 @@ button:disabled {
 
 .filters {
   grid-template-columns: 2fr 1fr;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .filters.single {
@@ -262,13 +393,20 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 11px 12px;
+  border-radius: 10px;
+  padding: 9px 10px;
   background: #fff;
   color: #0f172a;
+}
+
+textarea {
+  min-height: 92px;
+  resize: vertical;
+  line-height: 1.5;
 }
 
 .actions {
@@ -284,6 +422,47 @@ select {
   list-style: none;
 }
 
+.tileList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+  gap: 8px;
+  max-height: calc(100vh - 250px);
+  min-height: 240px;
+  overflow: auto;
+  margin: 0;
+  padding: 2px;
+  list-style: none;
+}
+
+.nikkeTile {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: #e2e8f0;
+  cursor: grab;
+  overflow: visible;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+}
+
+.nikkeTile.selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.14);
+}
+
+.nikkeTile.dragging {
+  opacity: 0.62;
+  transform: scale(0.96);
+}
+
+.tileImage {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
 .nikkeCard {
   display: grid;
   grid-template-columns: 180px 1fr auto;
@@ -293,6 +472,8 @@ select {
   border: 1px solid #e2e8f0;
   border-radius: 18px;
   background: #fff;
+  cursor: grab;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .nikkeCard.selected {
@@ -300,8 +481,19 @@ select {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
+.nikkeCard.dragging {
+  opacity: 0.62;
+  transform: scale(0.995);
+}
+
+.nikkeCard:active {
+  cursor: grabbing;
+}
+
 .imageTooltipWrap {
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .portrait {
@@ -327,8 +519,8 @@ select {
   left: 50%;
   bottom: calc(100% + 10px);
   z-index: 20;
-  width: min(320px, 85vw);
-  padding: 12px;
+  width: min(340px, 86vw);
+  padding: 10px;
   border: 1px solid #c7d2fe;
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.96);
@@ -346,17 +538,38 @@ select {
   transform: translate(-50%, 0);
 }
 
+.floatingTooltip {
+  position: fixed;
+  z-index: 1000;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.floatingTooltip.above {
+  transform: translate(-50%, -100%);
+}
+
+.floatingTooltip .skillTooltip,
+.skillTooltip.visible {
+  position: static;
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  opacity: 1;
+  transform: none;
+}
+
 .skillTooltip strong {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .skillTooltip p {
   display: grid;
   gap: 3px;
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: #e2e8f0;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .skillTooltip span {
@@ -409,9 +622,14 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .squadWorkspace {
+    grid-template-columns: 1fr;
+  }
+
   .summaryGrid,
   .squadSlots,
   .analysisGrid,
+  .buffColumns,
   .form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -436,6 +654,7 @@ select {
   .summaryGrid,
   .squadSlots,
   .analysisGrid,
+  .buffColumns,
   .filters,
   .form {
     grid-template-columns: 1fr;
