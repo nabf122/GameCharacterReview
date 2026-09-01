@@ -1,0 +1,200 @@
+﻿code,name,slug,rarity,burst,burst_stage,cooldown,element,class,corporation,weapon,status,note,image,face_image,full_image,parsed
+3001,라피,rapi,SR,3,3,40.0,작열,화력형,엘리시온,AR,,,rapi.webp,face/rapi.webp,rapi.webp,True
+3002,네온,neon,SR,1,1,20.0,작열,지원형,엘리시온,SG,,,neon.webp,face/neon.webp,neon.webp,True
+3005,아니스,anis,SR,2,2,20.0,철갑,방어형,테트라,RL,,,anis.webp,face/anis.webp,anis.webp,True
+5071,네온 : 블루 오션,neon-blue-ocean,SSR,3,3,40.0,수냉,화력형,엘리시온,MG,,,neon-blue-ocean.webp,face/neon-blue-ocean.webp,neon-blue-ocean.webp,True
+5097,아니스 : 스파클링 서머,anis-sparkling-summer,SSR,3,3,40.0,전격,지원형,테트라,SG,,,anis-sparkling-summer.webp,face/anis-sparkling-summer.webp,anis-sparkling-summer.webp,True
+5129,라피 : 레드 후드,rapi-red-hood,SSR,3,3,40.0,작열,화력형,엘리시온,MG,,,rapi-red-hood.webp,face/rapi-red-hood.webp,rapi-red-hood.webp,True
+5169,아니스 : 스타,anis-star,SSR,1,1,20.0,전격,방어형,테트라,RL,,,anis-star.webp,face/anis-star.webp,anis-star.webp,True
+5170,네온 : 비전 아이,neon-vision-eye,SSR,3,3,40.0,전격,화력형,미실리스,RL,,,neon-vision-eye.webp,face/neon-vision-eye.webp,neon-vision-eye.webp,True
+3003,델타,delta,SR,2,2,40.0,풍압,방어형,엘리시온,SR,unsupported,디코이·도발 — 딜 수치를 믿지 말 것,delta.webp,face/delta.webp,delta.webp,True
+5015,시그널,signal,SSR,2,2,20.0,작열,화력형,엘리시온,SMG,,,signal.webp,face/signal.webp,signal.webp,True
+5154,델타 : 닌자 시프,delta-ninja-thief,SSR,2,2,40.0,수냉,방어형,엘리시온,MG,,,delta-ninja-thief.webp,face/delta-ninja-thief.webp,delta-ninja-thief.webp,True
+5016,폴리,poli,SSR,2,2,40.0,수냉,방어형,엘리시온,SG,,,poli.webp,face/poli.webp,poli.webp,True
+5017,미란다,miranda,SSR,1,1,20.0,작열,지원형,엘리시온,SMG,,,miranda.webp,face/miranda.webp,miranda.webp,True
+5082,키리,quiry,SSR,3,3,40.0,풍압,지원형,엘리시온,RL,,,quiry.webp,face/quiry.webp,quiry.webp,True
+1007,D,d,SSR,3,3,40.0,풍압,화력형,엘리시온,SMG,,,d.webp,face/d.webp,d.webp,True
+5141,K,k,SSR,3,3,40.0,전격,화력형,엘리시온,SMG,,,k.webp,face/k.webp,k.webp,True
+5110,D : 킬러 와이프,d-killer-wife,SSR,1,1,20.0,작열,지원형,엘리시온,SR,,,d-killer-wife.webp,face/d-killer-wife.webp,d-killer-wife.webp,True
+3007,벨로타,belorta,SR,2,2,20.0,전격,화력형,테트라,RL,,,belorta.webp,face/belorta.webp,belorta.webp,True
+3008,미카,mica,SR,1,1,20.0,풍압,지원형,테트라,RL,,,mica.webp,face/mica.webp,mica.webp,True
+5104,미카 : 스노우 버디,mica-snow-buddy,SSR,1,1,20.0,철갑,지원형,테트라,SMG,,,mica-snow-buddy.webp,face/mica-snow-buddy.webp,mica-snow-buddy.webp,True
+5018,브리드,brid,SSR,3,3,40.0,수냉,화력형,엘리시온,AR,,,brid.webp,face/brid.webp,brid.webp,True
+5019,솔린,soline,SSR,3,3,40.0,철갑,화력형,엘리시온,SMG,,,soline.webp,face/soline.webp,soline.webp,True
+5020,디젤,diesel,SSR,2,2,20.0,풍압,방어형,엘리시온,MG,,,diesel.webp,face/diesel.webp,diesel.webp,True
+5160,브리드 : 사일런트 트랙,brid-silent-track,SSR,2,2,20.0,작열,지원형,엘리시온,SG,,,brid-silent-track.webp,face/brid-silent-track.webp,brid-silent-track.webp,True
+5158,솔린 : 프로스트 티켓,soline-frost-ticket,SSR,1,1,40.0,수냉,지원형,엘리시온,SG,,,soline-frost-ticket.webp,face/soline-frost-ticket.webp,soline-frost-ticket.webp,True
+5159,디젤 : 윈터 스위츠,diesel-winter-sweets,SSR,3,3,40.0,작열,화력형,엘리시온,RL,,,diesel-winter-sweets.webp,face/diesel-winter-sweets.webp,diesel-winter-sweets.webp,True
+5021,센티,centi,SSR,2,2,20.0,철갑,방어형,미실리스,RL,,,centi.webp,face/centi.webp,centi.webp,True
+5011,리타,liter,SSR,1,1,20.0,철갑,지원형,미실리스,SMG,,,liter.webp,face/liter.webp,liter.webp,True
+5005,엠마,emma,SSR,1,1,40.0,작열,지원형,엘리시온,MG,unsupported,순수 힐러 — 딜 수치를 믿지 말 것,emma.webp,face/emma.webp,emma.webp,True
+5022,베스티,vesti,SSR,3,3,40.0,수냉,화력형,엘리시온,RL,,,vesti.webp,face/vesti.webp,vesti.webp,True
+5023,은화,eunhwa,SSR,2,2,20.0,작열,화력형,엘리시온,SR,,,eunhwa.webp,face/eunhwa.webp,eunhwa.webp,True
+5147,엠마 : 택티컬 업,emma-tactical-upgrade,SSR,1,1,20.0,작열,지원형,엘리시온,MG,,,emma-tactical-upgrade.webp,face/emma-tactical-upgrade.webp,emma-tactical-upgrade.webp,True
+5148,베스티 : 택티컬 업,vesti-tactical-upgrade,SSR,3,3,40.0,작열,화력형,엘리시온,RL,,,vesti-tactical-upgrade.webp,face/vesti-tactical-upgrade.webp,vesti-tactical-upgrade.webp,True
+5149,은화 : 택티컬 업,eunhwa-tactical-upgrade,SSR,2,2,20.0,작열,화력형,엘리시온,SR,,,eunhwa-tactical-upgrade.webp,face/eunhwa-tactical-upgrade.webp,eunhwa-tactical-upgrade.webp,True
+1010,라플라스,laplace,SSR,3,3,40.0,철갑,화력형,미실리스,RL,,,laplace.webp,face/laplace.webp,laplace.webp,True
+5024,드레이크,drake,SSR,3,3,40.0,작열,화력형,미실리스,SG,verifying,"수치는 참조 시뮬과 일치. 미확인: 버스트 최대 장탄▲ 즉시 지급 여부, 파츠 보스에서 썬더볼트 다중 타격, 버스트 대미지의 풀버스트 보정",drake.webp,face/drake.webp,drake.webp,True
+5001,맥스웰,maxwell,SSR,3,3,40.0,철갑,화력형,미실리스,SR,,,maxwell.webp,face/maxwell.webp,maxwell.webp,True
+5177,라플라스 : 얼티밋 히어로,laplace-ultimate-hero,SSR,3,3,40.0,풍압,화력형,미실리스,RL,,,laplace-ultimate-hero.webp,face/laplace-ultimate-hero.webp,laplace-ultimate-hero.webp,True
+5178,맥스웰 : 오디너리 미케닉,maxwell-ordinary-mechanic,SSR,2,2,20.0,풍압,지원형,미실리스,SR,,,maxwell-ordinary-mechanic.webp,face/maxwell-ordinary-mechanic.webp,maxwell-ordinary-mechanic.webp,True
+5025,크로우,crow,SSR,3,3,40.0,작열,방어형,미실리스,SMG,,,crow.webp,face/crow.webp,crow.webp,True
+1020,자칼,jackal,SSR,1,1,20.0,철갑,방어형,미실리스,RL,unsupported,핵심(단일 대상 버스트 대미지 ▲) 미지원 — 딜 수치를 믿지 말 것,jackal.webp,face/jackal.webp,jackal.webp,True
+1022,바이퍼,viper,SSR,2,2,20.0,수냉,화력형,테트라,SG,,,viper.webp,face/viper.webp,viper.webp,True
+5166,E.H.,e-h,SSR,3,3,40.0,풍압,화력형,엘리시온,SMG,,,e-h.webp,face/e-h.webp,e-h.webp,True
+3009,N102,n102,SR,1,1,20.0,수냉,지원형,미실리스,RL,,,n102.webp,face/n102.webp,n102.webp,True
+5085,앤 : 미라클 페어리,anne-miracle-fairy,SSR,2,2,60.0,풍압,지원형,미실리스,RL,,,anne-miracle-fairy.webp,face/anne-miracle-fairy.webp,anne-miracle-fairy.webp,True
+5026,메어리,mary,SSR,1,1,40.0,수냉,지원형,테트라,SG,unsupported,순수 힐러 — 딜 수치를 믿지 말 것,mary.webp,face/mary.webp,mary.webp,True
+5027,페퍼,pepper,SSR,1,1,20.0,풍압,지원형,미실리스,SG,,,pepper.webp,face/pepper.webp,pepper.webp,True
+5064,메어리 : 베이 갓데스,mary-bay-goddess,SSR,1,1,20.0,수냉,지원형,테트라,SR,,,mary-bay-goddess.webp,face/mary-bay-goddess.webp,mary-bay-goddess.webp,True
+5002,슈가,sugar,SSR,3,3,40.0,철갑,화력형,테트라,SG,,,sugar.webp,face/sugar.webp,sugar.webp,True
+5028,밀크,milk,SSR,1,1,40.0,수냉,화력형,테트라,SR,,,milk.webp,face/milk.webp,milk.webp,True
+5010,프림,frima,SSR,1,1,20.0,철갑,지원형,테트라,SR,,,frima.webp,face/frima.webp,frima.webp,True
+5150,밀크 : 블루밍 바니,milk-blooming-bunny,SSR,3,3,40.0,철갑,화력형,테트라,SR,,,milk-blooming-bunny.webp,face/milk-blooming-bunny.webp,milk-blooming-bunny.webp,True
+5014,율리아,julia,SSR,3,3,40.0,철갑,화력형,미실리스,AR,,,julia.webp,face/julia.webp,julia.webp,True
+5006,유니,yuni,SSR,2,2,20.0,작열,방어형,미실리스,RL,,,yuni.webp,face/yuni.webp,yuni.webp,True
+3006,미하라,mihara,SR,3,3,40.0,수냉,화력형,미실리스,AR,,,mihara.webp,face/mihara.webp,mihara.webp,True
+5138,미하라 : 본딩 체인,mihara-bonding-chain,SSR,3,3,40.0,작열,화력형,미실리스,MG,,,mihara-bonding-chain.webp,face/mihara-bonding-chain.webp,mihara-bonding-chain.webp,True
+5007,프리바티,privaty,SSR,3,3,40.0,수냉,화력형,엘리시온,AR,,,privaty.webp,face/privaty.webp,privaty.webp,True
+5029,율하,yulha,SSR,3,3,40.0,작열,화력형,테트라,SR,,,yulha.webp,face/yulha.webp,yulha.webp,True
+5030,애드미,admi,SSR,2,2,20.0,풍압,지원형,미실리스,SR,,,admi.webp,face/admi.webp,admi.webp,True
+5031,길로틴,guillotine,SSR,3,3,40.0,전격,화력형,엘리시온,MG,,,guillotine.webp,face/guillotine.webp,guillotine.webp,True
+5032,메이든,maiden,SSR,3,3,40.0,전격,화력형,엘리시온,SG,,,maiden.webp,face/maiden.webp,maiden.webp,True
+5128,길로틴 : 윈터 슬레이어,guillotine-winter-slayer,SSR,3,3,40.0,수냉,화력형,엘리시온,AR,,,guillotine-winter-slayer.webp,face/guillotine-winter-slayer.webp,guillotine-winter-slayer.webp,True
+5127,메이든 : 아이스 로즈,maiden-ice-rose,SSR,3,3,40.0,전격,방어형,엘리시온,RL,,,maiden-ice-rose.webp,face/maiden-ice-rose.webp,maiden-ice-rose.webp,True
+5033,루드밀라,ludmilla,SSR,1,1,20.0,수냉,방어형,테트라,SMG,,,ludmilla.webp,face/ludmilla.webp,ludmilla.webp,True
+5004,앨리스,alice,SSR,3,3,40.0,작열,화력형,테트라,SR,,,alice.webp,face/alice.webp,alice.webp,True
+5081,토브,tove,SSR,1,1,20.0,수냉,지원형,미실리스,AR,,,tove.webp,face/tove.webp,tove.webp,True
+3011,네베,neve,SR,3,3,40.0,수냉,화력형,테트라,SG,,,neve.webp,face/neve.webp,neve.webp,True
+5103,루드밀라 : 윈터 오너,ludmilla-winter-owner,SSR,3,3,40.0,수냉,화력형,테트라,MG,,,ludmilla-winter-owner.webp,face/ludmilla-winter-owner.webp,ludmilla-winter-owner.webp,True
+5114,앨리스 : 원더랜드 바니,alice-wonderland-bunny,SSR,1,1,40.0,수냉,지원형,테트라,SMG,,,alice-wonderland-bunny.webp,face/alice-wonderland-bunny.webp,alice-wonderland-bunny.webp,True
+5034,루피,rupee,SSR,2,2,20.0,철갑,화력형,테트라,AR,,,rupee.webp,face/rupee.webp,rupee.webp,True
+5035,얀,yan,SSR,1,1,20.0,작열,지원형,테트라,RL,,,yan.webp,face/yan.webp,yan.webp,True
+5036,도라,dolla,SSR,2,2,20.0,풍압,지원형,테트라,SR,,,dolla.webp,face/dolla.webp,dolla.webp,True
+5087,루피 : 윈터 쇼퍼,rupee-winter-shopper,SSR,1,1,20.0,전격,방어형,테트라,AR,,,rupee-winter-shopper.webp,face/rupee-winter-shopper.webp,rupee-winter-shopper.webp,True
+5003,엑시아,exia,SSR,1,1,20.0,전격,지원형,테트라,SR,,,exia.webp,face/exia.webp,exia.webp,True
+5037,노벨,novel,SSR,2,2,20.0,철갑,방어형,테트라,SMG,,,novel.webp,face/novel.webp,novel.webp,True
+5012,스노우 화이트,snow-white,SSR,3,3,40.0,철갑,화력형,필그림,AR,,,snow-white.webp,face/snow-white.webp,snow-white.webp,True
+5040,라푼젤,rapunzel,SSR,1,1,60.0,철갑,지원형,필그림,RL,unsupported,순수 힐러(부활 미지원) — 딜 수치를 믿지 말 것,rapunzel.webp,face/rapunzel.webp,rapunzel.webp,True
+5041,홍련,scarlet,SSR,3,3,40.0,전격,화력형,필그림,AR,,,scarlet.webp,face/scarlet.webp,scarlet.webp,True
+5155,나유타,nayuta,SSR,2,2,20.0,풍압,지원형,필그림,SMG,,,nayuta.webp,face/nayuta.webp,nayuta.webp,True
+5102,스노우 화이트 : 이노센트 데이즈,snow-white-innocent-days,SSR,3,3,40.0,철갑,화력형,필그림,AR,,,snow-white-innocent-days.webp,face/snow-white-innocent-days.webp,snow-white-innocent-days.webp,True
+5105,홍련 : 흑영,scarlet-black-shadow,SSR,3,3,40.0,풍압,화력형,필그림,RL,,,scarlet-black-shadow.webp,face/scarlet-black-shadow.webp,scarlet-black-shadow.webp,True
+5123,라푼젤 : 퓨어 그레이스,rapunzel-pure-grace,SSR,1,1,20.0,철갑,방어형,필그림,SR,,,rapunzel-pure-grace.webp,face/rapunzel-pure-grace.webp,rapunzel-pure-grace.webp,True
+5042,하란,harran,SSR,3,3,40.0,전격,화력형,필그림,SR,,,harran.webp,face/harran.webp,harran.webp,True
+5013,이사벨,isabel,SSR,3,3,40.0,전격,화력형,필그림,SG,,,isabel.webp,face/isabel.webp,isabel.webp,True
+5043,노아,noah,SSR,2,2,40.0,풍압,방어형,필그림,RL,unsupported,순수 탱커 — 딜 수치를 믿지 말 것,noah.webp,face/noah.webp,noah.webp,True
+5061,도로시,dorothy,SSR,1,1,20.0,수냉,지원형,필그림,AR,unsupported,핵심(낙인 누적-분배) 미지원 — 딜 수치를 믿지 말 것,dorothy.webp,face/dorothy.webp,dorothy.webp,True
+5145,도로시 : 세렌디피티,dorothy-serendipity,SSR,3,3,40.0,수냉,화력형,필그림,SG,,,dorothy-serendipity.webp,face/dorothy-serendipity.webp,dorothy-serendipity.webp,True
+3004,루마니,rumani,SSR,1,1,20.0,작열,방어형,테트라,RL,,,rumani.webp,face/rumani.webp,rumani.webp,True
+5038,에피넬,epinel,SSR,3,3,40.0,풍압,화력형,미실리스,SMG,,,epinel.webp,face/epinel.webp,epinel.webp,True
+5039,폴크방,folkwang,SSR,2,2,40.0,수냉,방어형,테트라,AR,unsupported,보호막·힐 — 딜 수치를 믿지 말 것,folkwang.webp,face/folkwang.webp,folkwang.webp,True
+5044,모더니아,modernia,SSR,3,3,40.0,작열,화력형,필그림,MG,,,modernia.webp,face/modernia.webp,modernia.webp,True
+5056,니힐리스타,nihilister,SSR,2,2,20.0,작열,화력형,필그림,SR,,,nihilister.webp,face/nihilister.webp,nihilister.webp,True
+5156,리버렐리오,liberalio,SSR,3,3,40.0,풍압,화력형,필그림,SR,verifying,차지 속도(OL 장비·큐브)가 적용되지 않던 버그 수정(2026-08-30).,liberalio.webp,face/liberalio.webp,liberalio.webp,True
+5008,블랑,blanc,SSR,2,2,60.0,풍압,방어형,테트라,AR,,,blanc.webp,face/blanc.webp,blanc.webp,True
+5009,누아르,noir,SSR,3,3,40.0,풍압,화력형,테트라,SG,,,noir.webp,face/noir.webp,noir.webp,True
+5049,루주,rouge,SSR,1,1,20.0,전격,지원형,테트라,SR,,,rouge.webp,face/rouge.webp,rouge.webp,True
+5045,로산나,rosanna,SSR,1,1,40.0,전격,화력형,테트라,MG,,,rosanna.webp,face/rosanna.webp,rosanna.webp,True
+1021,목단,moran,SSR,1,1,40.0,전격,방어형,테트라,AR,,,moran.webp,face/moran.webp,moran.webp,True
+3015,사쿠라,sakura,SSR,1,1,40.0,작열,지원형,테트라,SR,,,sakura.webp,face/sakura.webp,sakura.webp,True
+5116,로산나 : 시크 오션,rosanna-chic-ocean,SSR,2,2,20.0,풍압,지원형,테트라,AR,,,rosanna-chic-ocean.webp,face/rosanna-chic-ocean.webp,rosanna-chic-ocean.webp,True
+5117,사쿠라 : 블룸 인 서머,sakura-bloom-in-summer,SSR,3,3,40.0,풍압,화력형,테트라,AR,,,sakura-bloom-in-summer.webp,face/sakura-bloom-in-summer.webp,sakura-bloom-in-summer.webp,True
+1019,마나,mana,SSR,3,3,40.0,풍압,화력형,미실리스,AR,,,mana.webp,face/mana.webp,mana.webp,True
+3010,에테르,ether,SR,1,1,40.0,전격,방어형,미실리스,SG,,,ether.webp,face/ether.webp,ether.webp,True
+1013,솔져 E.G.,soldier-eg,R,3,3,40.0,전격,화력형,엘리시온,AR,,,soldier-eg.webp,face/soldier-eg.webp,soldier-eg.webp,True
+1014,솔져 F.A.,soldier-fa,R,2,2,20.0,철갑,방어형,엘리시온,SG,,,soldier-fa.webp,face/soldier-fa.webp,soldier-fa.webp,True
+1015,프로덕트 08,product-08,R,1,1,20.0,전격,지원형,미실리스,SR,,,product-08.webp,face/product-08.webp,product-08.webp,True
+1016,프로덕트 12,product-12,R,3,3,40.0,작열,화력형,미실리스,MG,,,product-12.webp,face/product-12.webp,product-12.webp,True
+1017,iDoll 플라워,idoll-flower,R,1,1,20.0,풍압,방어형,테트라,RL,,,idoll-flower.webp,face/idoll-flower.webp,idoll-flower.webp,True
+1018,iDoll 오션,idoll-ocean,R,1,1,20.0,수냉,지원형,테트라,SMG,unsupported,순수 힐러 — 딜 수치를 믿지 말 것,idoll-ocean.webp,face/idoll-ocean.webp,idoll-ocean.webp,True
+1025,솔져 O.W.,soldier-ow,R,1,1,20.0,작열,지원형,엘리시온,SMG,,,soldier-ow.webp,face/soldier-ow.webp,soldier-ow.webp,True
+1024,프로덕트 23,product-23,R,2,2,20.0,풍압,지원형,미실리스,SG,,,product-23.webp,face/product-23.webp,product-23.webp,True
+1023,iDoll 썬,idoll-sun,R,3,3,40.0,철갑,지원형,테트라,AR,,,idoll-sun.webp,face/idoll-sun.webp,idoll-sun.webp,True
+5046,에이드,ade,SSR,2,2,20.0,풍압,지원형,테트라,AR,,,ade.webp,face/ade.webp,ade.webp,True
+5050,코코아,cocoa,SSR,1,1,20.0,작열,지원형,테트라,SR,unsupported,순수 서포터(해제·엄폐) — 딜 수치를 믿지 말 것,cocoa.webp,face/cocoa.webp,cocoa.webp,True
+5051,소다,soda,SSR,1,1,20.0,작열,지원형,테트라,MG,,,soda.webp,face/soda.webp,soda.webp,True
+5106,프리바티 : 언카인드 메이드,privaty-unkind-maid,SSR,3,3,40.0,전격,화력형,엘리시온,SG,,,privaty-unkind-maid.webp,face/privaty-unkind-maid.webp,privaty-unkind-maid.webp,True
+5113,소다 : 트윙클링 바니,soda-twinkling-bunny,SSR,3,3,40.0,철갑,화력형,테트라,SG,,,soda-twinkling-bunny.webp,face/soda-twinkling-bunny.webp,soda-twinkling-bunny.webp,True
+5151,에이드 : 에이전트 바니,ade-agent-bunny,SSR,2,2,20.0,철갑,지원형,테트라,SR,,,ade-agent-bunny.webp,face/ade-agent-bunny.webp,ade-agent-bunny.webp,True
+5163,벨벳,velvet,SSR,2,2,20.0,풍압,지원형,테트라,SR,,,velvet.webp,face/velvet.webp,velvet.webp,True
+5048,마르차나,marciana,SSR,2,2,20.0,철갑,지원형,엘리시온,SG,unsupported,순수 힐러 — 딜 수치를 믿지 말 것,marciana.webp,face/marciana.webp,marciana.webp,True
+5176,마르차나 : 마린 스터디,marciana-marine-study,SSR,3,3,40.0,철갑,화력형,엘리시온,AR,,,marciana-marine-study.webp,face/marciana-marine-study.webp,marciana-marine-study.webp,True
+5065,크라운,crown,SSR,2,2,20.0,철갑,방어형,필그림,MG,,,crown.webp,face/crown.webp,crown.webp,True
+5157,차임,chime,SSR,2,2,20.0,철갑,지원형,필그림,SMG,,,chime.webp,face/chime.webp,chime.webp,True
+5079,마스트,mast,SSR,2,2,20.0,전격,지원형,엘리시온,SMG,,,mast.webp,face/mast.webp,mast.webp,True
+5063,앵커,anchor,SR,1,1,20.0,풍압,방어형,엘리시온,RL,unsupported,도발·발사체 — 버스트 자딜만 — 딜 수치를 믿지 말 것,anchor.webp,face/anchor.webp,anchor.webp,True
+5066,헬름,helm,SSR,3,3,40.0,수냉,화력형,엘리시온,SR,,,helm.webp,face/helm.webp,helm.webp,True
+5098,헬름 : 아쿠아마린,helm-aquamarine,SSR,2,2,20.0,철갑,화력형,엘리시온,AR,,,helm-aquamarine.webp,face/helm-aquamarine.webp,helm-aquamarine.webp,True
+5130,마스트 : 로망틱 메이드,mast-romantic-maid,SSR,2,2,40.0,수냉,지원형,엘리시온,MG,,,mast-romantic-maid.webp,face/mast-romantic-maid.webp,mast-romantic-maid.webp,True
+5131,앵커 : 이노센트 메이드,anchor-innocent-maid,SSR,2,2,40.0,수냉,지원형,엘리시온,RL,,,anchor-innocent-maid.webp,face/anchor-innocent-maid.webp,anchor-innocent-maid.webp,True
+5053,킬로,kilo,SSR,3,3,40.0,작열,방어형,미실리스,MG,,,kilo.webp,face/kilo.webp,kilo.webp,True
+5068,네로,nero,SSR,2,2,20.0,작열,방어형,테트라,SMG,,,nero.webp,face/nero.webp,nero.webp,True
+5054,비스킷,biscuit,SSR,2,2,40.0,전격,지원형,테트라,RL,,,biscuit.webp,face/biscuit.webp,biscuit.webp,True
+5092,레오나,leona,SSR,2,2,20.0,수냉,지원형,테트라,SG,,,leona.webp,face/leona.webp,leona.webp,True
+5088,츠바이,zwei,SSR,1,1,20.0,전격,지원형,엘리시온,SG,,,zwei.webp,face/zwei.webp,zwei.webp,True
+5077,아인,ein,SSR,3,3,40.0,전격,화력형,미실리스,SR,,,ein.webp,face/ein.webp,ein.webp,True
+5069,라이,rei,SSR,1,1,20.0,수냉,방어형,테트라,SMG,unsupported,디코이 탱커 — 게이지 기여만 등록 — 딜 수치를 믿지 말 것,rei.webp,face/rei.webp,rei.webp,True
+5055,길티,guilty,SSR,2,2,20.0,풍압,화력형,미실리스,SG,unsupported,핵심(공격력 복제) 미지원 — 딜 수치를 믿지 말 것,guilty.webp,face/guilty.webp,guilty.webp,True
+5059,신,sin,SSR,2,2,20.0,전격,방어형,미실리스,AR,unsupported,체력 복제·주목 킷 — 딜 수치를 믿지 말 것,sin.webp,face/sin.webp,sin.webp,True
+5078,퀀시,quency,SSR,2,2,20.0,전격,지원형,미실리스,SMG,,,quency.webp,face/quency.webp,quency.webp,True
+5121,퀀시 : 이스케이프 퀸,quency-escape-queen,SSR,3,3,40.0,수냉,화력형,미실리스,SMG,,,quency-escape-queen.webp,face/quency-escape-queen.webp,quency-escape-queen.webp,True
+5126,플로라,flora,SSR,2,2,40.0,전격,지원형,미실리스,MG,,,flora.webp,face/flora.webp,flora.webp,True
+5134,트리나,trina,SSR,2,2,20.0,전격,지원형,미실리스,RL,,,trina.webp,face/trina.webp,trina.webp,True
+5074,노이즈,noise,SSR,1,1,40.0,전격,지원형,테트라,RL,,,noise.webp,face/noise.webp,noise.webp,True
+5075,볼륨,volume,SSR,1,1,20.0,풍압,화력형,테트라,SMG,,,volume.webp,face/volume.webp,volume.webp,True
+5070,아리아,aria,SSR,2,2,40.0,수냉,화력형,테트라,MG,,,aria.webp,face/aria.webp,aria.webp,True
+5171,아비스타,avistar,SSR,1,1,20.0,전격,지원형,엘리시온,MG,,,avistar.webp,face/avistar.webp,avistar.webp,True
+5099,나가,naga,SSR,2,2,20.0,전격,지원형,미실리스,SG,,,naga.webp,face/naga.webp,naga.webp,True
+5100,티아,tia,SSR,1,1,40.0,철갑,방어형,미실리스,RL,unsupported,핵심(엄폐물 회복 트리거) 미지원 — 딜 수치를 믿지 말 것,tia.webp,face/tia.webp,tia.webp,True
+5101,레드 후드,red-hood,SSR,A,3,40.0,철갑,화력형,필그림,SR,,,red-hood.webp,face/red-hood.webp,red-hood.webp,True
+5161,스노우 화이트 : 헤비암즈,snow-white-heavy-arms,SSR,3,3,40.0,수냉,화력형,필그림,SR,,,snow-white-heavy-arms.webp,face/snow-white-heavy-arms.webp,snow-white-heavy-arms.webp,True
+5107,일레그,elegg,SSR,2,2,20.0,전격,지원형,미실리스,MG,,,elegg.webp,face/elegg.webp,elegg.webp,True
+5112,트로니,trony,SSR,3,3,40.0,작열,화력형,미실리스,SR,unsupported,핵심(대미지 누적-방출) 미지원 — 딜 수치를 믿지 말 것,trony.webp,face/trony.webp,trony.webp,True
+5146,일레그 : 붐 앤 쇼크,elegg-boom-and-shock,SSR,3,3,40.0,수냉,화력형,미실리스,MG,,,elegg-boom-and-shock.webp,face/elegg-boom-and-shock.webp,elegg-boom-and-shock.webp,True
+5124,신데렐라,cinderella,SSR,3,3,40.0,전격,방어형,필그림,RL,,,cinderella.webp,face/cinderella.webp,cinderella.webp,True
+5137,리틀 머메이드,little-mermaid,SSR,1,1,20.0,풍압,지원형,필그림,SMG,,,little-mermaid.webp,face/little-mermaid.webp,little-mermaid.webp,True
+5125,그레이브,grave,SSR,2,2,20.0,작열,지원형,필그림,AR,,,grave.webp,face/grave.webp,grave.webp,True
+5175,신데렐라 : 크리스탈 웨이브,cinderella-crystal-wave,SSR,3,3,40.0,철갑,화력형,필그림,MG,,,cinderella-crystal-wave.webp,face/cinderella-crystal-wave.webp,cinderella-crystal-wave.webp,True
+5135,브래디,bready,SSR,3,3,40.0,수냉,화력형,테트라,SR,,,bready.webp,face/bready.webp,bready.webp,True
+5136,크러스트,crust,SSR,2,2,20.0,수냉,지원형,테트라,RL,unsupported,핵심(비풀차지·차지 홀드 상태 순환) 미지원 — 딜 수치를 믿지 말 것,crust.webp,face/crust.webp,crust.webp,True
+5144,소라,sora,SSR,1,1,40.0,풍압,지원형,엘리시온,RL,,,sora.webp,face/sora.webp,sora.webp,True
+5111,베이,bay,SSR,2,2,40.0,작열,방어형,테트라,RL,unsupported,엄폐·분배 킷 — 딜 수치를 믿지 말 것,bay.webp,face/bay.webp,bay.webp,True
+5115,클레이,clay,SSR,2,2,40.0,전격,지원형,테트라,SMG,,,clay.webp,face/clay.webp,clay.webp,True
+5174,아크레인저 블랙,ark-ranger-black,SSR,3,3,40.0,풍압,화력형,테트라,AR,,,ark-ranger-black.webp,face/ark-ranger-black.webp,ark-ranger-black.webp,True
+5122,팬텀,phantom,SSR,3,3,40.0,수냉,화력형,엘리시온,AR,,,phantom.webp,face/phantom.webp,phantom.webp,True
+5140,아르카나,arcana,SSR,2,2,40.0,전격,지원형,엘리시온,RL,,,arcana.webp,face/arcana.webp,arcana.webp,True
+5162,레이블,label,SSR,1,1,20.0,철갑,방어형,엘리시온,AR,,,label.webp,face/label.webp,label.webp,True
+5167,아르카나 : 포츈 메이트,arcana-fortune-mate,SSR,2,2,20.0,작열,화력형,엘리시온,SG,,,arcana-fortune-mate.webp,face/arcana-fortune-mate.webp,arcana-fortune-mate.webp,True
+5139,모리,mori,SSR,2,2,20.0,풍압,방어형,미실리스,AR,,,mori.webp,face/mori.webp,mori.webp,True
+5172,민트,mint,SSR,2,2,20.0,철갑,지원형,테트라,RL,,,mint.webp,face/mint.webp,mint.webp,True
+5173,프리카,prika,SSR,2,2,40.0,수냉,지원형,테트라,SR,,,prika.webp,face/prika.webp,prika.webp,True
+5168,백학,snow-crane,SSR,2,2,40.0,수냉,방어형,미실리스,SR,unsupported,회복 킷 — 시전자 기준 체력 ▲만 간접 기여 — 딜 수치를 믿지 말 것,snow-crane.webp,face/snow-crane.webp,snow-crane.webp,True
+5089,마키마,makima,SSR,2,2,20.0,수냉,방어형,어브노말,SMG,unsupported,스쿼드 기여(피격 트리거) 재현 불가 — 딜 수치를 믿지 말 것,makima.webp,face/makima.webp,makima.webp,True
+5090,파워,power,SSR,3,3,40.0,작열,화력형,어브노말,RL,,,power.webp,face/power.webp,power.webp,True
+3012,히메노,himeno,SR,2,2,20.0,풍압,지원형,어브노말,SR,,,himeno.webp,face/himeno.webp,himeno.webp,True
+5094,2B,2b,SSR,3,3,40.0,작열,방어형,어브노말,AR,,,2b.webp,face/2b.webp,2b.webp,True
+5095,A2,a2,SSR,3,3,40.0,작열,화력형,어브노말,RL,,,a2.webp,face/a2.webp,a2.webp,True
+5108,렘,rem,SSR,2,2,20.0,수냉,지원형,어브노말,MG,,,rem.webp,face/rem.webp,rem.webp,True
+5109,에밀리아,emilia,SSR,3,3,40.0,수냉,화력형,어브노말,RL,unsupported,핵심(가한 피해 비례 고정 대미지) 미지원 — 과소 큼 — 딜 수치를 믿지 말 것,emilia.webp,face/emilia.webp,emilia.webp,True
+3013,람,ram,SR,1,1,40.0,풍압,방어형,어브노말,SR,,,ram.webp,face/ram.webp,ram.webp,True
+5118,아스카,asuka,SSR,3,3,40.0,작열,화력형,어브노말,AR,,,asuka.webp,face/asuka.webp,asuka.webp,True
+5119,레이,rei-2,SSR,3,3,40.0,작열,화력형,어브노말,MG,,,rei-2.webp,face/rei-2.webp,rei-2.webp,True
+5120,마리,mari,SSR,2,2,20.0,전격,지원형,어브노말,SR,,,mari.webp,face/mari.webp,mari.webp,True
+3014,미사토,misato,SR,1,1,40.0,철갑,지원형,어브노말,SMG,unsupported,보호막 대미지(적 보호막 모델 없음) — 딜 수치를 믿지 말 것,misato.webp,face/misato.webp,misato.webp,True
+5132,레이 (가칭),rei-tentative-name,SSR,3,3,40.0,풍압,화력형,어브노말,AR,,,rei-tentative-name.webp,face/rei-tentative-name.webp,rei-tentative-name.webp,True
+5133,아스카 : WILLE,asuka-wille,SSR,3,3,40.0,풍압,화력형,어브노말,MG,,,asuka-wille.webp,face/asuka-wille.webp,asuka-wille.webp,True
+,사쿠라 (SR),sakura-sr,SR,1,1,40.0,수냉,지원형,어브노말,SMG,,,sakura-sr.webp,face/sakura-sr.webp,sakura-sr.webp,True
+5152,에이다,ada,SSR,3,3,40.0,전격,화력형,어브노말,RL,,,ada.webp,face/ada.webp,ada.webp,True
+5153,질,jill,SSR,3,3,40.0,전격,화력형,어브노말,AR,,,jill.webp,face/jill.webp,jill.webp,True
+3017,클레어,claire,SR,1,1,40.0,전격,지원형,어브노말,RL,unsupported,순수 힐러 — 딜 수치를 믿지 말 것,claire.webp,face/claire.webp,claire.webp,True
+5142,이브,eve,SSR,3,3,40.0,철갑,화력형,어브노말,AR,,,eve.webp,face/eve.webp,eve.webp,True
+5143,레이븐,raven,SSR,3,3,40.0,철갑,화력형,어브노말,RL,bug,"되는 것: 쇼크웨이브 지속 피해(스택 수만큼 증가, 2026-08-28 수정)·A.N. 모드 지속 피해↑·버스트 템페스트. 안 되는 것: 급소 공략(파츠 대미지↑)은 계산기에 파츠 명중 판정이 없어 평타·지속 피해에 안 붙음, 일점 공격(파츠 파괴 후 지속 피해↑)은 파괴 이벤트가 기본 꺼짐(레이드 설정 파츠 파괴 주기를 켜야 발동). 따라서 파츠 보스에선 실제보다 낮게 나옴 — 파츠 구간·조준 모델 도입 예정",raven.webp,face/raven.webp,raven.webp,True
+3016,릴리,lily,SR,2,2,40.0,풍압,지원형,어브노말,SMG,,,lily.webp,face/lily.webp,lily.webp,True
+5164,치사토,chisato,SSR,3,3,40.0,철갑,화력형,어브노말,SMG,,,chisato.webp,face/chisato.webp,chisato.webp,True
+5165,타키나,takina,SSR,2,2,20.0,철갑,지원형,어브노말,SR,,,takina.webp,face/takina.webp,takina.webp,True
+3018,쿠루미,kurumi,SR,1,1,20.0,철갑,지원형,어브노말,AR,,,kurumi.webp,face/kurumi.webp,kurumi.webp,True
+5179,퀸(마코토),queen-makoto,SSR,3,3,40.0,작열,화력형,어브노말,SG,,,queen-makoto.webp,face/queen-makoto.webp,queen-makoto.webp,True
+5180,유키코,yukiko,SSR,3,3,40.0,작열,화력형,어브노말,MG,,,yukiko.webp,face/yukiko.webp,yukiko.webp,True
+3019,아이기스,aigis,SR,2,2,20.0,철갑,지원형,어브노말,SMG,,,aigis.webp,face/aigis.webp,aigis.webp,True
+5096,파스칼,pascal,SR,1,1,40.0,철갑,지원형,어브노말,RL,unsupported,차지 불가 RL(무기 데이터에 차지 시간 없음) — 엔진 발사 모델 미지원이라 로스터 미등록,pascal.webp,face/pascal.webp,pascal.webp,False

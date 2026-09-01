@@ -1,0 +1,38 @@
+{
+  "source": "https://dildoro.com/",
+  "collected_at_utc": "2026-08-31T13:39:41.934403+00:00",
+  "source_generated": "2026-08-31",
+  "character_count": 199,
+  "skill_level_row_count": 5970,
+  "costume_count": 178,
+  "image_candidate_count": 1169,
+  "image_downloaded_or_existing": 932,
+  "image_failed": 237,
+  "api_used": false,
+  "raw_files": {
+    "profile_maps.json": {
+      "size": 74079,
+      "sha256": "9fd955276e9fa5c76c62105b61f62d0d248e548ca73cc682a79d73ed1c5d55d7"
+    },
+    "roster.json": {
+      "size": 424837,
+      "sha256": "d89cae0f1a6cb4c35972684ed01aff423ca3467ac0808eca2874a5a959aa289b"
+    },
+    "arena.js": {
+      "size": 35638,
+      "sha256": "0e7df7a5456e270cbba570b2301251a3931abb2e8dd687c874f4e2562a0a8ee3"
+    },
+    "museum.json": {
+      "size": 96588,
+      "sha256": "07db256b33b9a2f918cef1bf7736628156421568c42eb99e1a2fc2acfe1e639e"
+    },
+    "robots.txt": {
+      "size": 3151,
+      "sha256": "26dbbe0c51c3d7e802f40639be154b2e3bc92df53e1d310f5015566e92b285e4"
+    },
+    "app.js": {
+      "size": 802670,
+      "sha256": "f7821497874c4f6afc40833fa301253aac2c5d643ca62aaec8efa0068962bf5b"
+    }
+  }
+}

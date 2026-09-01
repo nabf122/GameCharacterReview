@@ -97,30 +97,43 @@ const createEmptyForm = () => ({
   skill1: '',
   skill2: '',
   burstSkill: '',
+  buffEffects: [],
   imageUrl: '',
+  faceImageUrl: '',
+  fullImageUrl: '',
 });
 
 const API_BASE = '/api';
 
-const buffCategories = [
-  { key: 'attack', label: '공격/화력', keywords: ['공격력', '공격', '화력', '대미지', '데미지', '피해량', '주는 피해'] },
-  { key: 'crit', label: '크리티컬', keywords: ['크리티컬', '치명타', '크확', '크뎀'] },
-  { key: 'hit', label: '명중', keywords: ['명중'] },
-  { key: 'ammo', label: '장탄/탄환', keywords: ['장탄', '탄환', '탄창', '최대 장탄'] },
-  { key: 'reload', label: '재장전', keywords: ['재장전', '장전'] },
-  { key: 'burst', label: '버스트 회전', keywords: ['버스트 게이지', '버스트 쿨타임', '쿨타임 감소', '풀 버스트', '쿨타임'] },
-  { key: 'shield', label: '보호막', keywords: ['보호막', '배리어'] },
-  { key: 'recover', label: '회복', keywords: ['회복', '체력 회복', '치유'] },
-  { key: 'defense', label: '방어/피해 감소', keywords: ['방어', '피해 감소', '받는 피해', '피해를 완화', '엄폐물'] },
-  { key: 'speed', label: '속도/차지', keywords: ['차지', '공격 속도', '속도'] },
+const buffEffectTypes = [
+  { key: 'attackUp', label: '공격력 증가', kind: 'buff' },
+  { key: 'critRateUp', label: '크리티컬 증가', kind: 'buff' },
+  { key: 'critDamageUp', label: '크리티컬 대미지 증가', kind: 'buff' },
+  { key: 'coreDamageUp', label: '코어대미지 증가', kind: 'buff' },
+  { key: 'attackDamageUp', label: '공격 대미지 증가', kind: 'buff' },
+  { key: 'partsDamageUp', label: '파츠 대미지 증가', kind: 'buff' },
+  { key: 'pierceDamageUp', label: '관통 대미지 증가', kind: 'buff' },
+  { key: 'dotDamageUp', label: '지속 대미지 증가', kind: 'buff' },
+  { key: 'ignoreDefenseDamageUp', label: '방어력 무시 대미지 증가', kind: 'buff' },
+  { key: 'projectileDamageUp', label: '투사체 대미지 증가', kind: 'buff' },
+  { key: 'interruptionPartDamageUp', label: '저지부위 대미지 증가', kind: 'buff' },
+  { key: 'chargeDamageUp', label: '차지 대미지 증가', kind: 'buff' },
+  { key: 'elementDamageUp', label: '우월코드 대미지 증가', kind: 'buff' },
+  { key: 'distributedDamageUp', label: '분배 대미지 증가', kind: 'buff' },
+  { key: 'damageTakenUp', label: '받는 대미지 증가', kind: 'debuff' },
 ];
 
-const allyTargetWords = ['아군', '아군 전체', '전체', '스쿼드', '팀', '동료', '파티'];
-const selfTargetWords = ['자신', '자기', '본인', '자신의', '자신에게'];
-const skillLabels = [
-  ['skill1', '1스킬'],
-  ['skill2', '2스킬'],
-  ['burstSkill', '버스트'],
+const effectTypeMap = Object.fromEntries(buffEffectTypes.map((type) => [type.key, type]));
+const skillOptions = ['1스킬', '2스킬', '버스트'];
+const targetOptions = [
+  { value: 'ally', label: '아군' },
+  { value: 'self', label: '자신' },
+  { value: 'enemy', label: '적' },
+];
+const skillTextFields = [
+  { name: 'skill1', label: '1스킬', placeholder: '1스킬 원문/메모를 입력하세요' },
+  { name: 'skill2', label: '2스킬', placeholder: '2스킬 원문/메모를 입력하세요' },
+  { name: 'burstSkill', label: '버스트 스킬', placeholder: '버스트 스킬 원문/메모를 입력하세요' },
 ];
 
 const requestJson = async (path, options = {}) => {
@@ -153,57 +166,27 @@ const matchesNikkeKeyword = (nikke, keyword) => {
     nikke.skill1,
     nikke.skill2,
     nikke.burstSkill,
+    ...(nikke.buffEffects || []).map((effect) => `${effectTypeMap[effect.type]?.label || effect.type} ${effect.value || ''} ${effect.note || ''}`),
   ]
     .join(' ')
     .toLowerCase()
     .includes(keyword);
 };
 
-const extractPercentTotal = (text) => {
-  const matches = text.match(/\d+(?:\.\d+)?\s*%/g) || [];
-  return matches.reduce((total, match) => total + Number.parseFloat(match), 0);
-};
-
 const createBuffBucket = () => ({
   total: 0,
-  withPercent: 0,
   percentTotal: 0,
   sources: [],
 });
 
-const detectSkillBuffs = (nikke, skillLabel, text) => {
-  const normalizedText = text.trim();
-  if (!normalizedText) {
-    return [];
-  }
-
-  const targets = [];
-  if (allyTargetWords.some((word) => normalizedText.includes(word))) {
-    targets.push('ally');
-  }
-  if (selfTargetWords.some((word) => normalizedText.includes(word))) {
-    targets.push('self');
-  }
-
-  const matchedCategories = buffCategories.filter((category) =>
-    category.keywords.some((keyword) => normalizedText.includes(keyword)),
-  );
-
-  if (!targets.length || !matchedCategories.length) {
-    return [];
-  }
-
-  const percentTotal = extractPercentTotal(normalizedText);
-  return targets.flatMap((target) =>
-    matchedCategories.map((category) => ({
-      target,
-      category,
-      percentTotal,
-      source: `${nikke.name} · ${skillLabel}`,
-      text: normalizedText,
-    })),
-  );
-};
+const createEmptyEffect = () => ({
+  id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+  skill: skillOptions[0],
+  target: 'ally',
+  type: buffEffectTypes[0].key,
+  value: '',
+  note: '',
+});
 
 function App() {
   const [nikkes, setNikkes] = useState([]);
@@ -212,7 +195,11 @@ function App() {
   const [squadIds, setSquadIds] = useState([]);
   const [screen, setScreen] = useState('squad');
   const [query, setQuery] = useState('');
-  const [burstFilter, setBurstFilter] = useState('all');
+  const [queryInput, setQueryInput] = useState('');
+  const [selectedRarities, setSelectedRarities] = useState([]);
+  const [selectedManufacturers, setSelectedManufacturers] = useState([]);
+  const [selectedCodes, setSelectedCodes] = useState([]);
+  const [selectedBursts, setSelectedBursts] = useState([]);
   const [manageQuery, setManageQuery] = useState('');
   const [draggingId, setDraggingId] = useState(null);
   const [dragOverSlot, setDragOverSlot] = useState(null);
@@ -220,7 +207,10 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState('');
   const [importingSkills, setImportingSkills] = useState(false);
+  const [importingDildoro, setImportingDildoro] = useState(false);
   const [importMessage, setImportMessage] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageUploadMessage, setImageUploadMessage] = useState('');
 
   useEffect(() => {
     const loadNikkes = async () => {
@@ -251,10 +241,14 @@ function App() {
     const keyword = query.trim().toLowerCase();
 
     return nikkes.filter((nikke) => {
-      const matchesBurst = burstFilter === 'all' || nikke.burst === burstFilter;
-      return matchesBurst && matchesNikkeKeyword(nikke, keyword);
+      const matchesRarity = !selectedRarities.length || selectedRarities.includes(nikke.rarity);
+      const matchesManufacturer = !selectedManufacturers.length || selectedManufacturers.includes(nikke.manufacturer);
+      const matchesCode = !selectedCodes.length || selectedCodes.includes(nikke.code);
+      const matchesBurst = !selectedBursts.length || selectedBursts.includes(nikke.burst);
+
+      return matchesRarity && matchesManufacturer && matchesCode && matchesBurst && matchesNikkeKeyword(nikke, keyword);
     });
-  }, [burstFilter, nikkes, query]);
+  }, [nikkes, query, selectedBursts, selectedCodes, selectedManufacturers, selectedRarities]);
 
   const filteredManagedNikkes = useMemo(() => {
     const keyword = manageQuery.trim().toLowerCase();
@@ -288,37 +282,52 @@ function App() {
     const summary = {
       ally: {},
       self: {},
+      debuff: {},
       allyTotal: 0,
       selfTotal: 0,
+      debuffTotal: 0,
     };
 
-    buffCategories.forEach((category) => {
-      summary.ally[category.key] = { ...createBuffBucket(), label: category.label };
-      summary.self[category.key] = { ...createBuffBucket(), label: category.label };
+    buffEffectTypes.forEach((type) => {
+      const bucket = { ...createBuffBucket(), label: type.label };
+      if (type.kind === 'debuff') {
+        summary.debuff[type.key] = bucket;
+        return;
+      }
+
+      summary.ally[type.key] = { ...bucket };
+      summary.self[type.key] = { ...bucket };
     });
 
     squad.forEach((nikke) => {
-      skillLabels.forEach(([field, skillLabel]) => {
-        detectSkillBuffs(nikke, skillLabel, nikke[field] || '').forEach((buff) => {
-          const bucket = summary[buff.target][buff.category.key];
-          bucket.total += 1;
-          bucket.sources.push({
-            source: buff.source,
-            text: buff.text,
-            percentTotal: buff.percentTotal,
-          });
+      (nikke.buffEffects || []).forEach((effect) => {
+        const type = effectTypeMap[effect.type];
+        if (!type) {
+          return;
+        }
 
-          if (buff.percentTotal > 0) {
-            bucket.withPercent += 1;
-            bucket.percentTotal += buff.percentTotal;
-          }
+        const group = type.kind === 'debuff' ? 'debuff' : effect.target === 'self' ? 'self' : 'ally';
+        const bucket = summary[group][type.key];
+        if (!bucket) {
+          return;
+        }
 
-          if (buff.target === 'ally') {
-            summary.allyTotal += 1;
-          } else {
-            summary.selfTotal += 1;
-          }
+        const value = Number.parseFloat(effect.value) || 0;
+        bucket.total += 1;
+        bucket.percentTotal += value;
+        bucket.sources.push({
+          source: `${nikke.name} · ${effect.skill || '스킬'}`,
+          text: `${type.label} ${value || 0}%${effect.note ? ` · ${effect.note}` : ''}`,
+          percentTotal: value,
         });
+
+        if (group === 'ally') {
+          summary.allyTotal += 1;
+        } else if (group === 'self') {
+          summary.selfTotal += 1;
+        } else {
+          summary.debuffTotal += 1;
+        }
       });
     });
 
@@ -326,6 +335,7 @@ function App() {
       ...summary,
       allyEntries: Object.values(summary.ally).filter((entry) => entry.total > 0),
       selfEntries: Object.values(summary.self).filter((entry) => entry.total > 0),
+      debuffEntries: Object.values(summary.debuff).filter((entry) => entry.total > 0),
     };
   }, [squad]);
 
@@ -334,9 +344,28 @@ function App() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const toggleFilterValue = (setter, value) => {
+    setter((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]));
+  };
+
+  const clearRosterFilters = () => {
+    setQuery('');
+    setQueryInput('');
+    setSelectedRarities([]);
+    setSelectedManufacturers([]);
+    setSelectedCodes([]);
+    setSelectedBursts([]);
+  };
+
+  const searchRoster = (event) => {
+    event.preventDefault();
+    setQuery(queryInput.trim());
+  };
+
   const resetForm = () => {
     setForm(createEmptyForm());
     setEditingId(null);
+    setImageUploadMessage('');
   };
 
   const submitNikke = async (event) => {
@@ -358,7 +387,19 @@ function App() {
       skill1: form.skill1.trim(),
       skill2: form.skill2.trim(),
       burstSkill: form.burstSkill.trim(),
+      buffEffects: form.buffEffects
+        .filter((effect) => effect.type && effect.value !== '')
+        .map((effect) => ({
+          id: effect.id || String(Date.now()),
+          skill: effect.skill,
+          target: effectTypeMap[effect.type]?.kind === 'debuff' ? 'enemy' : effect.target,
+          type: effect.type,
+          value: String(effect.value).trim(),
+          note: String(effect.note || '').trim(),
+        })),
       imageUrl: form.imageUrl.trim(),
+      faceImageUrl: form.faceImageUrl.trim(),
+      fullImageUrl: form.fullImageUrl.trim(),
     };
 
     try {
@@ -388,6 +429,7 @@ function App() {
   const editNikke = (nikke) => {
     setScreen('manage');
     setEditingId(nikke.id);
+    setImageUploadMessage('');
     setForm({
       name: nikke.name,
       rarity: nikke.rarity,
@@ -400,8 +442,69 @@ function App() {
       skill1: nikke.skill1 || '',
       skill2: nikke.skill2 || '',
       burstSkill: nikke.burstSkill || '',
+      buffEffects: Array.isArray(nikke.buffEffects) ? nikke.buffEffects : [],
       imageUrl: nikke.imageUrl || '',
+      faceImageUrl: nikke.faceImageUrl || '',
+      fullImageUrl: nikke.fullImageUrl || '',
     });
+  };
+
+  const addEffect = () => {
+    setForm((prev) => ({ ...prev, buffEffects: [...prev.buffEffects, createEmptyEffect()] }));
+  };
+
+  const updateEffect = (id, field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      buffEffects: prev.buffEffects.map((effect) => {
+        if (effect.id !== id) {
+          return effect;
+        }
+
+        const next = { ...effect, [field]: value };
+        if (field === 'type' && effectTypeMap[value]?.kind === 'debuff') {
+          next.target = 'enemy';
+        }
+        return next;
+      }),
+    }));
+  };
+
+  const removeEffect = (id) => {
+    setForm((prev) => ({ ...prev, buffEffects: prev.buffEffects.filter((effect) => effect.id !== id) }));
+  };
+
+  const uploadCharacterImage = async (event) => {
+    const [file] = event.target.files || [];
+    if (!file) {
+      return;
+    }
+
+    const body = new FormData();
+    body.append('image', file);
+
+    try {
+      setUploadingImage(true);
+      setImageUploadMessage('');
+      const response = await fetch(`${API_BASE}/uploads/images`, {
+        method: 'POST',
+        body,
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || '이미지 업로드에 실패했습니다.');
+      }
+
+      setForm((prev) => ({ ...prev, imageUrl: payload.imageUrl }));
+      setImageUploadMessage(`${file.name} 업로드 완료`);
+      setApiError('');
+    } catch (error) {
+      setImageUploadMessage('');
+      setApiError(error.message);
+    } finally {
+      setUploadingImage(false);
+      event.target.value = '';
+    }
   };
 
   const saveSquadIds = async (nextIds) => {
@@ -476,6 +579,23 @@ function App() {
     }
   };
 
+  const importDildoroData = async () => {
+    try {
+      setImportingDildoro(true);
+      setImportMessage('');
+      const result = await requestJson('/import/dildoro', { method: 'POST' });
+      setNikkes(result.nikkes);
+      setApiError('');
+      setImportMessage(
+        `Dildoro SSR ${result.total}명 적용 완료: 신규 ${result.created}명, 업데이트 ${result.updated}명, 제외 ${result.skipped}명`,
+      );
+    } catch (error) {
+      setApiError(error.message);
+    } finally {
+      setImportingDildoro(false);
+    }
+  };
+
   const startDrag = (event, id) => {
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('application/x-nikke-id', String(id));
@@ -516,13 +636,15 @@ function App() {
     const rect = event.currentTarget.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const x = Math.min(Math.max(rect.left + rect.width / 2, 180), viewportWidth - 180);
-    const showAbove = rect.bottom + 280 > viewportHeight && rect.top > 280;
+    const tooltipWidth = Math.min(380, viewportWidth - 24);
+    const tooltipHeight = Math.min(420, viewportHeight - 24);
+    const x = Math.min(Math.max(rect.left + rect.width / 2, tooltipWidth / 2 + 12), viewportWidth - tooltipWidth / 2 - 12);
+    const showAbove = rect.bottom + tooltipHeight > viewportHeight && rect.top > tooltipHeight;
 
     setTooltip({
       nikke,
       x,
-      y: showAbove ? rect.top - 8 : rect.bottom + 8,
+      y: showAbove ? Math.max(12, rect.top - 8) : Math.min(rect.bottom + 8, viewportHeight - 12),
       placement: showAbove ? 'top' : 'bottom',
     });
   };
@@ -532,32 +654,27 @@ function App() {
   const renderSkillTooltip = (nikke, className = 'skillTooltip') => (
     <div className={className} role="tooltip">
       <strong>{nikke.name}</strong>
-      <p>
-        <span>정보</span>
-        {nikke.rarity} · {nikke.manufacturer} · {nikke.classType} · {nikke.burst} · {nikke.code} · {nikke.weapon}
-      </p>
-      <p>
-        <span>역할</span>
-        {nikke.squadRole || '입력된 역할 정보가 없습니다.'}
-      </p>
-      <p>
-        <span>1스킬</span>
-        {nikke.skill1 || '입력된 1스킬 정보가 없습니다.'}
-      </p>
-      <p>
-        <span>2스킬</span>
-        {nikke.skill2 || '입력된 2스킬 정보가 없습니다.'}
-      </p>
-      <p>
-        <span>버스트</span>
-        {nikke.burstSkill || '입력된 버스트 스킬 정보가 없습니다.'}
-      </p>
+      {skillTextFields.some((field) => nikke[field.name]) ? (
+        skillTextFields.map((field) =>
+          nikke[field.name] ? (
+            <p key={field.name}>
+              <span>{field.label}</span>
+              {nikke[field.name]}
+            </p>
+          ) : null,
+        )
+      ) : (
+        <p>
+          <span>스킬</span>
+          입력된 스킬 설명이 없습니다.
+        </p>
+      )}
     </div>
   );
 
-  const renderNikkeImage = (nikke, className = 'portrait') => (
+  const renderNikkeImage = (nikke, className = 'portrait', imageSource = nikke.fullImageUrl || nikke.imageUrl) => (
     <div
-      className="imageTooltipWrap"
+      className={`imageTooltipWrap ${className === 'tileImage' ? 'faceImageWrap' : ''}`}
       onMouseEnter={(event) => showTooltip(event, nikke)}
       onMouseMove={(event) => showTooltip(event, nikke)}
       onMouseLeave={hideTooltip}
@@ -569,9 +686,21 @@ function App() {
         draggable
         onDragStart={(event) => startDrag(event, nikke.id)}
         onDragEnd={() => setDraggingId(null)}
-        src={nikke.imageUrl || 'https://placehold.co/360x240?text=NIKKE'}
+        src={imageSource || nikke.faceImageUrl || 'https://placehold.co/360x240?text=NIKKE'}
         alt={`${nikke.name} 이미지`}
       />
+      <div className="imageInfoOverlay" aria-hidden="true">
+        <strong>{nikke.name}</strong>
+        <span>
+          {nikke.rarity} · {nikke.burst}
+        </span>
+        <span>
+          {nikke.manufacturer} · {nikke.classType}
+        </span>
+        <span>
+          {nikke.code} · {nikke.weapon}
+        </span>
+      </div>
     </div>
   );
 
@@ -595,7 +724,7 @@ function App() {
           onClick={() => toggleSquadSelection(nikke.id)}
           {...cardDragProps}
         >
-          {renderNikkeImage(nikke, 'tileImage')}
+          {renderNikkeImage(nikke, 'tileImage', nikke.faceImageUrl || nikke.imageUrl || nikke.fullImageUrl)}
         </li>
       );
     }
@@ -708,10 +837,6 @@ function App() {
                     {nikke ? (
                       <>
                         {renderNikkeImage(nikke, 'slotImage')}
-                        <strong>{nikke.name}</strong>
-                        <span>
-                          {nikke.burst} · {nikke.classType}
-                        </span>
                         <button type="button" onClick={() => removeFromSquad(nikke.id)}>
                           제거
                         </button>
@@ -759,7 +884,8 @@ function App() {
               <div className="buffHeader">
                 <h3>버프 총합</h3>
                 <span>
-                  아군 {squadBuffAnalysis.allyTotal}개 · 자기 강화 {squadBuffAnalysis.selfTotal}개
+                  아군 {squadBuffAnalysis.allyTotal}개 · 자기 {squadBuffAnalysis.selfTotal}개 · 디버프{' '}
+                  {squadBuffAnalysis.debuffTotal}개
                 </span>
               </div>
               <div className="buffColumns">
@@ -781,7 +907,7 @@ function App() {
                       </details>
                     ))
                   ) : (
-                    <p className="emptyBuff">아군 대상 버프 키워드가 없습니다.</p>
+                    <p className="emptyBuff">아군 대상 버프 효과가 없습니다.</p>
                   )}
                 </div>
                 <div>
@@ -802,7 +928,28 @@ function App() {
                       </details>
                     ))
                   ) : (
-                    <p className="emptyBuff">자기 강화 키워드가 없습니다.</p>
+                    <p className="emptyBuff">자기 강화 효과가 없습니다.</p>
+                  )}
+                </div>
+                <div>
+                  <strong>적 디버프</strong>
+                  {squadBuffAnalysis.debuffEntries.length ? (
+                    squadBuffAnalysis.debuffEntries.map((entry) => (
+                      <details key={`debuff-${entry.label}`} className="buffItem">
+                        <summary>
+                          {entry.label}
+                          <span>{entry.percentTotal ? `${entry.percentTotal}% / ${entry.total}개` : `${entry.total}개`}</span>
+                        </summary>
+                        {entry.sources.map((source, index) => (
+                          <p key={`${source.source}-${index}`}>
+                            <b>{source.source}</b>
+                            {source.text}
+                          </p>
+                        ))}
+                      </details>
+                    ))
+                  ) : (
+                    <p className="emptyBuff">적 대상 디버프 효과가 없습니다.</p>
                   )}
                 </div>
               </div>
@@ -815,18 +962,84 @@ function App() {
                 <h2>니케 선택</h2>
               </div>
             </div>
-            <div className="filters">
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="이름/기업/병과/코드/무기/스킬 검색"
-              />
-              <select value={burstFilter} onChange={(event) => setBurstFilter(event.target.value)}>
-                <option value="all">전체 버스트</option>
-                {bursts.map((burst) => (
-                  <option key={burst}>{burst}</option>
-                ))}
-              </select>
+            <div className="rosterFilters">
+              <form className="searchRow" onSubmit={searchRoster}>
+                <input
+                  value={queryInput}
+                  onChange={(event) => setQueryInput(event.target.value)}
+                  placeholder="이름/기업/병과/코드/무기/스킬 검색"
+                />
+                <button type="submit" className="button">
+                  검색
+                </button>
+                <button type="button" className="button ghost" onClick={clearRosterFilters}>
+                  초기화
+                </button>
+              </form>
+              <div className="filterGroup">
+                <span>등급</span>
+                <div className="filterButtons">
+                  {rarities.map((rarity) => (
+                    <button
+                      key={rarity}
+                      type="button"
+                      className={`filterChip ${selectedRarities.includes(rarity) ? 'active' : ''}`}
+                      aria-pressed={selectedRarities.includes(rarity)}
+                      onClick={() => toggleFilterValue(setSelectedRarities, rarity)}
+                    >
+                      {rarity}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="filterGroup">
+                <span>제조사</span>
+                <div className="filterButtons">
+                  {manufacturers.map((manufacturer) => (
+                    <button
+                      key={manufacturer}
+                      type="button"
+                      className={`filterChip ${selectedManufacturers.includes(manufacturer) ? 'active' : ''}`}
+                      aria-pressed={selectedManufacturers.includes(manufacturer)}
+                      onClick={() => toggleFilterValue(setSelectedManufacturers, manufacturer)}
+                    >
+                      {manufacturer}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="filterGroup">
+                <span>속성</span>
+                <div className="filterButtons">
+                  {codes.map((code) => (
+                    <button
+                      key={code}
+                      type="button"
+                      className={`filterChip ${selectedCodes.includes(code) ? 'active' : ''}`}
+                      aria-pressed={selectedCodes.includes(code)}
+                      onClick={() => toggleFilterValue(setSelectedCodes, code)}
+                    >
+                      {code}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="filterGroup">
+                <span>버스트</span>
+                <div className="filterButtons">
+                  {bursts.map((burst) => (
+                    <button
+                      key={burst}
+                      type="button"
+                      className={`filterChip ${selectedBursts.includes(burst) ? 'active' : ''}`}
+                      aria-pressed={selectedBursts.includes(burst)}
+                      onClick={() => toggleFilterValue(setSelectedBursts, burst)}
+                    >
+                      {burst}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
             <p className="resultInfo">후보 {filteredNikkes.length}명</p>
             <ul className="tileList">{filteredNikkes.map((nikke) => renderNikkeCard(nikke, 'squad'))}</ul>
@@ -899,40 +1112,111 @@ function App() {
                   required
                 />
               </label>
+              <div className="effectEditor full">
+                <div className="effectEditorHeader">
+                  <strong>버프/디버프 효과</strong>
+                  <button type="button" className="button small" onClick={addEffect}>
+                    효과 추가
+                  </button>
+                </div>
+                {form.buffEffects.length ? (
+                  form.buffEffects.map((effect) => {
+                    const selectedType = effectTypeMap[effect.type];
+                    const isDebuff = selectedType?.kind === 'debuff';
+                    return (
+                      <div key={effect.id} className="effectRow">
+                        <label>
+                          스킬
+                          <select value={effect.skill} onChange={(event) => updateEffect(effect.id, 'skill', event.target.value)}>
+                            {skillOptions.map((skill) => (
+                              <option key={skill}>{skill}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          대상
+                          <select
+                            value={isDebuff ? 'enemy' : effect.target}
+                            onChange={(event) => updateEffect(effect.id, 'target', event.target.value)}
+                            disabled={isDebuff}
+                          >
+                            {targetOptions.map((target) => (
+                              <option key={target.value} value={target.value}>
+                                {target.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          효과 종류
+                          <select value={effect.type} onChange={(event) => updateEffect(effect.id, 'type', event.target.value)}>
+                            {buffEffectTypes.map((type) => (
+                              <option key={type.key} value={type.key}>
+                                {type.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          수치(%)
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={effect.value}
+                            onChange={(event) => updateEffect(effect.id, 'value', event.target.value)}
+                            placeholder="예: 66"
+                          />
+                        </label>
+                        <label>
+                          메모
+                          <input
+                            value={effect.note || ''}
+                            onChange={(event) => updateEffect(effect.id, 'note', event.target.value)}
+                            placeholder="조건/유지 시간"
+                          />
+                        </label>
+                        <button type="button" className="button danger small effectRemove" onClick={() => removeEffect(effect.id)}>
+                          삭제
+                        </button>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="emptyBuff">입력된 효과가 없습니다. 효과 추가를 눌러 버프/디버프 수치를 등록하세요.</p>
+                )}
+              </div>
+              <details className="skillTextEditor full">
+                <summary>원문 스킬 메모</summary>
+                <div className="skillTextGrid">
+                  {skillTextFields.map((field) => (
+                    <label key={field.name}>
+                      {field.label}
+                      <textarea
+                        name={field.name}
+                        value={form[field.name]}
+                        onChange={updateForm}
+                        placeholder={field.placeholder}
+                        rows={3}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </details>
               <label className="full">
-                1스킬
-                <textarea
-                  name="skill1"
-                  value={form.skill1}
-                  onChange={updateForm}
-                  placeholder="1스킬 효과를 입력하세요"
-                  rows={3}
-                />
+                이미지 URL 또는 업로드 경로
+                <input name="imageUrl" value={form.imageUrl} onChange={updateForm} placeholder="https://... 또는 /uploads/name.png" />
               </label>
-              <label className="full">
-                2스킬
-                <textarea
-                  name="skill2"
-                  value={form.skill2}
-                  onChange={updateForm}
-                  placeholder="2스킬 효과를 입력하세요"
-                  rows={3}
-                />
-              </label>
-              <label className="full">
-                버스트 스킬
-                <textarea
-                  name="burstSkill"
-                  value={form.burstSkill}
-                  onChange={updateForm}
-                  placeholder="버스트 스킬 효과를 입력하세요"
-                  rows={3}
-                />
-              </label>
-              <label className="full">
-                이미지 URL
-                <input name="imageUrl" value={form.imageUrl} onChange={updateForm} placeholder="https://..." />
-              </label>
+              <div className="imageUpload full">
+                <label>
+                  캐릭터 이미지 파일
+                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={uploadCharacterImage} disabled={uploadingImage} />
+                </label>
+                {form.imageUrl && (
+                  <img className="imagePreview" src={form.imageUrl} alt="업로드 이미지 미리보기" />
+                )}
+                <span>{uploadingImage ? '업로드 중...' : imageUploadMessage || 'JPG, PNG, WebP, GIF 파일을 저장할 수 있습니다.'}</span>
+              </div>
               <div className="actions full">
                 <button type="submit" className="button primary">
                   {editingId ? '수정 저장' : '니케 추가'}
@@ -952,9 +1236,14 @@ function App() {
                 <h2>등록된 니케</h2>
                 <p>검색어는 니케명, 기업, 병과, 코드, 무기, 버스트, 스킬 정보에 적용됩니다.</p>
               </div>
-              <button type="button" className="button" onClick={importSsrSkillsFromNamuWiki} disabled={importingSkills}>
-                {importingSkills ? '가져오는 중...' : '나무위키 SSR 스킬 가져오기'}
-              </button>
+              <div className="importActions">
+                <button type="button" className="button" onClick={importDildoroData} disabled={importingDildoro || importingSkills}>
+                  {importingDildoro ? '적용 중...' : 'Dildoro SSR 적용'}
+                </button>
+                <button type="button" className="button ghost" onClick={importSsrSkillsFromNamuWiki} disabled={importingSkills || importingDildoro}>
+                  {importingSkills ? '가져오는 중...' : '나무위키 원문 스킬 가져오기'}
+                </button>
+              </div>
             </div>
             {importMessage && <p className="importMessage">{importMessage}</p>}
             <div className="filters single">

@@ -1,0 +1,179 @@
+﻿character_code,character_name,costume_code,costume_name,image,face_image,full_image
+3001,라피,10005,클래식 바캉스,costume/mi/rapi-02.webp,face/rapi-02.webp,costume/full/rapi-02.webp
+3001,라피,20001,화이트 프로미스,costume/mi/rapi-01.webp,face/rapi-01.webp,costume/full/rapi-01.webp
+3002,네온,30001,블링 불렛,costume/mi/neon-01.webp,face/neon-01.webp,costume/full/neon-01.webp
+5129,라피 : 레드 후드,10014,레드 플레이버,costume/mi/rapi-red-hood-01.webp,face/rapi-red-hood-01.webp,costume/full/rapi-red-hood-01.webp
+5129,라피 : 레드 후드,30050,체리시드 레드,costume/mi/rapi-red-hood-02.webp,face/rapi-red-hood-02.webp,costume/full/rapi-red-hood-02.webp
+5129,라피 : 레드 후드,130005,샤인 라이트,costume/mi/rapi-red-hood-03.webp,face/rapi-red-hood-03.webp,costume/full/rapi-red-hood-03.webp
+5169,아니스 : 스타,30064,T.T. STAR,costume/mi/anis-star-02.webp,face/anis-star-02.webp,costume/full/anis-star-02.webp
+5169,아니스 : 스타,120004,스타라이트,costume/mi/anis-star-01.webp,face/anis-star-01.webp,costume/full/anis-star-01.webp
+5015,시그널,60001,드라마틱 초코,costume/mi/signal-01.webp,face/signal-01.webp,costume/full/signal-01.webp
+5016,폴리,30002,스위트 홀릭,costume/mi/poli-01.webp,face/poli-01.webp,costume/full/poli-01.webp
+5016,폴리,30025,치얼 업 폴리스,costume/mi/poli-02.webp,face/poli-02.webp,costume/full/poli-02.webp
+5017,미란다,30031,씨프 오브 저스티스,costume/mi/miranda-01.webp,face/miranda-01.webp,costume/full/miranda-01.webp
+5141,K,100002,언더 커버,costume/mi/k-01.webp,face/k-01.webp,costume/full/k-01.webp
+5110,D : 킬러 와이프,50013,시크릿 파티 클리너,costume/mi/d-killer-wife-01.webp,face/d-killer-wife-01.webp,costume/full/d-killer-wife-01.webp
+5110,D : 킬러 와이프,100003,시크릿 폴리스,costume/mi/d-killer-wife-02.webp,face/d-killer-wife-02.webp,costume/full/d-killer-wife-02.webp
+5018,브리드,30003,클래식 워커,costume/mi/brid-01.webp,face/brid-01.webp,costume/full/brid-01.webp
+5018,브리드,30019,블랙 문,costume/mi/brid-02.webp,face/brid-02.webp,costume/full/brid-02.webp
+5020,디젤,30005,스트로베리 플라워,costume/mi/diesel-01.webp,face/diesel-01.webp,costume/full/diesel-01.webp
+5020,디젤,30006,블랙 홀리데이,costume/mi/diesel-02.webp,face/diesel-02.webp,costume/full/diesel-02.webp
+5020,디젤,50011,미드나잇 스트로베리,costume/mi/diesel-04.webp,face/diesel-04.webp,costume/full/diesel-04.webp
+5021,센티,10012,오션 리페어,costume/mi/centi-02.webp,face/centi-02.webp,costume/full/centi-02.webp
+5021,센티,30012,마이티 홀리데이,costume/mi/centi-01.webp,face/centi-01.webp,costume/full/centi-01.webp
+5011,리타,10001,피쉬 가드,costume/mi/liter-01.webp,face/liter-01.webp,costume/full/liter-01.webp
+5011,리타,50008,큐트 선플라워,costume/mi/liter-02.webp,face/liter-02.webp,costume/full/liter-02.webp
+5005,엠마,30016,오피스 테라피,costume/mi/emma-02.webp,face/emma-02.webp,costume/full/emma-02.webp
+5005,엠마,40001,달링 레드,costume/mi/emma-01.webp,face/emma-01.webp,costume/full/emma-01.webp
+5022,베스티,130002,아크 메이지,costume/mi/vesti-01.webp,face/vesti-01.webp,costume/full/vesti-01.webp
+5147,엠마 : 택티컬 업,50018,시크릿 테라피,costume/mi/emma-tactical-upgrade-01.webp,face/emma-tactical-upgrade-01.webp,costume/full/emma-tactical-upgrade-01.webp
+5148,베스티 : 택티컬 업,30060,퓨어 비기너,costume/mi/vesti-tactical-upgrade-01.webp,face/vesti-tactical-upgrade-01.webp,costume/full/vesti-tactical-upgrade-01.webp
+5149,은화 : 택티컬 업,30049,데이 오프,costume/mi/eunhwa-tactical-upgrade-01.webp,face/eunhwa-tactical-upgrade-01.webp,costume/full/eunhwa-tactical-upgrade-01.webp
+5024,드레이크,60002,메이드 포 빌런,costume/mi/drake-02.webp,face/drake-02.webp,costume/full/drake-02.webp
+5024,드레이크,80001,빌런 레이서,costume/mi/drake-01.webp,face/drake-01.webp,costume/full/drake-01.webp
+5001,맥스웰,30004,메카닉 화이트,costume/mi/maxwell-01.webp,face/maxwell-01.webp,costume/full/maxwell-01.webp
+5177,라플라스 : 얼티밋 히어로,30069,프로토타입 히어로,costume/mi/laplace-ultimate-hero-01.webp,face/laplace-ultimate-hero-01.webp,costume/full/laplace-ultimate-hero-01.webp
+5178,맥스웰 : 오디너리 미케닉,30070,치프 리서처,costume/mi/maxwell-ordinary-mechanic-01.webp,face/maxwell-ordinary-mechanic-01.webp,costume/full/maxwell-ordinary-mechanic-01.webp
+1020,자칼,30054,클래스 팽,costume/mi/jackal-01.webp,face/jackal-01.webp,costume/full/jackal-01.webp
+1022,바이퍼,10009,샤인 오브 러브,costume/mi/viper-02.webp,face/viper-02.webp,costume/full/viper-02.webp
+1022,바이퍼,30059,펑키 스트리트,costume/mi/viper-03.webp,face/viper-03.webp,costume/full/viper-03.webp
+1022,바이퍼,70001,톡신 래빗,costume/mi/viper-01.webp,face/viper-01.webp,costume/full/viper-01.webp
+5166,E.H.,30068,정크야드 뱅가드,costume/mi/e-h-01.webp,face/e-h-01.webp,costume/full/e-h-01.webp
+5026,메어리,70004,메디컬 래빗,costume/mi/mary-01.webp,face/mary-01.webp,costume/full/mary-01.webp
+5027,페퍼,10004,오션 비타민,costume/mi/pepper-01.webp,face/pepper-01.webp,costume/full/pepper-01.webp
+5002,슈가,30022,와일드 백야드,costume/mi/sugar-02.webp,face/sugar-02.webp,costume/full/sugar-02.webp
+5002,슈가,50002,콜 미 하드보일드,costume/mi/sugar-01.webp,face/sugar-01.webp,costume/full/sugar-01.webp
+5028,밀크,30011,익스트림 파이터,costume/mi/milk-01.webp,face/milk-01.webp,costume/full/milk-01.webp
+5010,프림,10002,씨 오브 슬로스,costume/mi/frima-01.webp,face/frima-01.webp,costume/full/frima-01.webp
+5014,율리아,30048,서머 로망스,costume/mi/julia-02.webp,face/julia-02.webp,costume/full/julia-02.webp
+5014,율리아,50001,마일드 녹턴,costume/mi/julia-01.webp,face/julia-01.webp,costume/full/julia-01.webp
+5006,유니,30008,러블리 핑크,costume/mi/yuni-01.webp,face/yuni-01.webp,costume/full/yuni-01.webp
+5138,미하라 : 본딩 체인,30043,페인 이터,costume/mi/mihara-bonding-chain-01.webp,face/mihara-bonding-chain-01.webp,costume/full/mihara-bonding-chain-01.webp
+5007,프리바티,30009,거버먼트 노멀,costume/mi/privaty-01.webp,face/privaty-01.webp,costume/full/privaty-01.webp
+5007,프리바티,30047,푸른 인연,costume/mi/privaty-03.webp,face/privaty-03.webp,costume/full/privaty-03.webp
+5007,프리바티,30061,샤프 레슨,costume/mi/privaty-04.webp,face/privaty-04.webp,costume/full/privaty-04.webp
+5007,프리바티,50005,연회의 공주,costume/mi/privaty-02.webp,face/privaty-02.webp,costume/full/privaty-02.webp
+5031,길로틴,50009,다크 트레이서,costume/mi/guillotine-01.webp,face/guillotine-01.webp,costume/full/guillotine-01.webp
+5032,메이든,10007,언더 더 썬,costume/mi/maiden-02.webp,face/maiden-02.webp,costume/full/maiden-02.webp
+5032,메이든,30007,시크릿 너스,costume/mi/maiden-01.webp,face/maiden-01.webp,costume/full/maiden-01.webp
+5004,앨리스,30015,스위트 홈,costume/mi/alice-01.webp,face/alice-01.webp,costume/full/alice-01.webp
+5004,앨리스,130003,메르헨 드림,costume/mi/alice-02.webp,face/alice-02.webp,costume/full/alice-02.webp
+5081,토브,10013,썬블레이즈,costume/mi/tove-02.webp,face/tove-02.webp,costume/full/tove-02.webp
+5081,토브,30032,아이 러브 베이스볼,costume/mi/tove-01.webp,face/tove-01.webp,costume/full/tove-01.webp
+5034,루피,70002,럭셔리 래빗,costume/mi/rupee-01.webp,face/rupee-01.webp,costume/full/rupee-01.webp
+5035,얀,10003,선라이즈 마켓,costume/mi/yan-01.webp,face/yan-01.webp,costume/full/yan-01.webp
+5036,도라,50004,다크 로즈,costume/mi/dolla-01.webp,face/dolla-01.webp,costume/full/dolla-01.webp
+5003,엑시아,30023,게이머즈,costume/mi/exia-02.webp,face/exia-02.webp,costume/full/exia-02.webp
+5003,엑시아,40002,메리 너드 데이,costume/mi/exia-01.webp,face/exia-01.webp,costume/full/exia-01.webp
+5003,엑시아,70005,해커 래빗,costume/mi/exia-03.webp,face/exia-03.webp,costume/full/exia-03.webp
+5037,노벨,30010,펭귄 홈즈,costume/mi/novel-01.webp,face/novel-01.webp,costume/full/novel-01.webp
+5037,노벨,100001,디텍티브 너스,costume/mi/novel-02.webp,face/novel-02.webp,costume/full/novel-02.webp
+5012,스노우 화이트,30026,화이트 나이트,costume/mi/snow-white-01.webp,face/snow-white-01.webp,costume/full/snow-white-01.webp
+5041,홍련,110023,레이서즈 하이,costume/mi/scarlet-01.webp,face/scarlet-01.webp,costume/full/scarlet-01.webp
+5155,나유타,120003,무위,costume/mi/nayuta-01.webp,face/nayuta-01.webp,costume/full/nayuta-01.webp
+5105,홍련 : 흑영,30033,연화,costume/mi/scarlet-black-shadow-01.webp,face/scarlet-black-shadow-01.webp,costume/full/scarlet-black-shadow-01.webp
+5042,하란,50006,연회의 마녀,costume/mi/harran-01.webp,face/harran-01.webp,costume/full/harran-01.webp
+5013,이사벨,50014,허니문 파티,costume/mi/isabel-01.webp,face/isabel-01.webp,costume/full/isabel-01.webp
+5061,도로시,50007,노스텔지어,costume/mi/dorothy-01.webp,face/dorothy-01.webp,costume/full/dorothy-01.webp
+5061,도로시,130004,루나 라이트,costume/mi/dorothy-02.webp,face/dorothy-02.webp,costume/full/dorothy-02.webp
+5039,폴크방,70003,모이스트 래빗,costume/mi/folkwang-01.webp,face/folkwang-01.webp,costume/full/folkwang-01.webp
+5044,모더니아,30018,퍼스트 어펙션,costume/mi/modernia-01.webp,face/modernia-01.webp,costume/full/modernia-01.webp
+5044,모더니아,120002,세컨드 어펙션,costume/mi/modernia-02.webp,face/modernia-02.webp,costume/full/modernia-02.webp
+5156,리버렐리오,50019,드리밍 레이크,costume/mi/liberalio-01.webp,face/liberalio-01.webp,costume/full/liberalio-01.webp
+5008,블랑,30021,백묘,costume/mi/blanc-01.webp,face/blanc-01.webp,costume/full/blanc-01.webp
+5008,블랑,30044,77번 타자,costume/mi/blanc-02.webp,face/blanc-02.webp,costume/full/blanc-02.webp
+5008,블랑,30055,포츈 익스프레스,costume/mi/blanc-03.webp,face/blanc-03.webp,costume/full/blanc-03.webp
+5009,누아르,30020,흑묘,costume/mi/noir-01.webp,face/noir-01.webp,costume/full/noir-01.webp
+5009,누아르,30045,베이스볼 치어리더,costume/mi/noir-02.webp,face/noir-02.webp,costume/full/noir-02.webp
+5049,루주,70006,언럭키 래빗,costume/mi/rouge-01.webp,face/rouge-01.webp,costume/full/rouge-01.webp
+5045,로산나,30024,미스 데인저러스,costume/mi/rosanna-01.webp,face/rosanna-01.webp,costume/full/rosanna-01.webp
+1021,목단,30046,오프 듀티 퀸,costume/mi/moran-01.webp,face/moran-01.webp,costume/full/moran-01.webp
+1021,목단,50020,화중지왕,costume/mi/moran-02.webp,face/moran-02.webp,costume/full/moran-02.webp
+3015,사쿠라,30017,흑야암행,costume/mi/sakura-01.webp,face/sakura-01.webp,costume/full/sakura-01.webp
+5046,에이드,30040,메이드 인 스프링,costume/mi/ade-01.webp,face/ade-01.webp,costume/full/ade-01.webp
+5163,벨벳,70008,센슈얼 래빗,costume/mi/velvet-01.webp,face/velvet-01.webp,costume/full/velvet-01.webp
+5048,마르차나,30029,스쿨 데이즈,costume/mi/marciana-01.webp,face/marciana-01.webp,costume/full/marciana-01.webp
+5065,크라운,30052,영화,costume/mi/crown-02.webp,face/crown-02.webp,costume/full/crown-02.webp
+5065,크라운,120001,네이키드 킹,costume/mi/crown-01.webp,face/crown-01.webp,costume/full/crown-01.webp
+5079,마스트,10006,파이레츠 하트,costume/mi/mast-01.webp,face/mast-01.webp,costume/full/mast-01.webp
+5079,마스트,10010,마스트 더 다이버,costume/mi/mast-02.webp,face/mast-02.webp,costume/full/mast-02.webp
+5063,앵커,10011,앵커 더 다이버,costume/mi/anchor-01.webp,face/anchor-01.webp,costume/full/anchor-01.webp
+5066,헬름,30037,애프터 샤워,costume/mi/helm-02.webp,face/helm-02.webp,costume/full/helm-02.webp
+5066,헬름,50003,샹들리에 라이트,costume/mi/helm-01.webp,face/helm-01.webp,costume/full/helm-01.webp
+5130,마스트 : 로망틱 메이드,30057,티 서비스,costume/mi/mast-romantic-maid-01.webp,face/mast-romantic-maid-01.webp,costume/full/mast-romantic-maid-01.webp
+5054,비스킷,30038,스프링 퍼피,costume/mi/biscuit-01.webp,face/biscuit-01.webp,costume/full/biscuit-01.webp
+5092,레오나,30030,주 키퍼,costume/mi/leona-01.webp,face/leona-01.webp,costume/full/leona-01.webp
+5088,츠바이,30034,퍼스트 페스타,costume/mi/zwei-01.webp,face/zwei-01.webp,costume/full/zwei-01.webp
+5088,츠바이,30058,스프링 스트롤,costume/mi/zwei-02.webp,face/zwei-02.webp,costume/full/zwei-02.webp
+5077,아인,30035,핸드메이드 페스타,costume/mi/ein-01.webp,face/ein-01.webp,costume/full/ein-01.webp
+5055,길티,10008,디스빌리프 웨이브,costume/mi/guilty-01.webp,face/guilty-01.webp,costume/full/guilty-01.webp
+5059,신,60004,백스트리트 드림,costume/mi/sin-01.webp,face/sin-01.webp,costume/full/sin-01.webp
+5121,퀀시 : 이스케이프 퀸,50017,마스커레이드 스완,costume/mi/quency-escape-queen-01.webp,face/quency-escape-queen-01.webp,costume/full/quency-escape-queen-01.webp
+5126,플로라,70009,페어리 래빗,costume/mi/flora-01.webp,face/flora-01.webp,costume/full/flora-01.webp
+5134,트리나,30067,내추럴 화이트,costume/mi/trina-01.webp,face/trina-01.webp,costume/full/trina-01.webp
+5074,노이즈,30013,체리블로섬 스테이지,costume/mi/noise-01.webp,face/noise-01.webp,costume/full/noise-01.webp
+5074,노이즈,50010,클래식 디바,costume/mi/noise-02.webp,face/noise-02.webp,costume/full/noise-02.webp
+5075,볼륨,130001,비트 더 건,costume/mi/volume-01.webp,face/volume-01.webp,costume/full/volume-01.webp
+5099,나가,10015,링 앙상블,costume/mi/naga-03.webp,face/naga-03.webp,costume/full/naga-03.webp
+5099,나가,30027,엘레강스 데이트,costume/mi/naga-01.webp,face/naga-01.webp,costume/full/naga-01.webp
+5099,나가,30036,라스트 걸후드,costume/mi/naga-02.webp,face/naga-02.webp,costume/full/naga-02.webp
+5100,티아,10017,씨 리지,costume/mi/tia-03.webp,face/tia-03.webp,costume/full/tia-03.webp
+5100,티아,30028,러블리 데이트,costume/mi/tia-01.webp,face/tia-01.webp,costume/full/tia-01.webp
+5100,티아,30039,스윗 셰프,costume/mi/tia-02.webp,face/tia-02.webp,costume/full/tia-02.webp
+5101,레드 후드,30051,레트로 데이즈,costume/mi/red-hood-02.webp,face/red-hood-02.webp,costume/full/red-hood-02.webp
+5101,레드 후드,50012,넌센스 레드,costume/mi/red-hood-01.webp,face/red-hood-01.webp,costume/full/red-hood-01.webp
+5112,트로니,60003,스위트 스텝,costume/mi/trony-01.webp,face/trony-01.webp,costume/full/trony-01.webp
+5124,신데렐라,30042,뷰티풀 미,costume/mi/cinderella-02.webp,face/cinderella-02.webp,costume/full/cinderella-02.webp
+5124,신데렐라,50015,유리 공주,costume/mi/cinderella-01.webp,face/cinderella-01.webp,costume/full/cinderella-01.webp
+5137,리틀 머메이드,10016,쉘 프린세스,costume/mi/little-mermaid-03.webp,face/little-mermaid-03.webp,costume/full/little-mermaid-03.webp
+5137,리틀 머메이드,30053,뷰티풀 버블,costume/mi/little-mermaid-02.webp,face/little-mermaid-02.webp,costume/full/little-mermaid-02.webp
+5137,리틀 머메이드,50016,어비스 플라워,costume/mi/little-mermaid-01.webp,face/little-mermaid-01.webp,costume/full/little-mermaid-01.webp
+5125,그레이브,30041,뷰티풀 유,costume/mi/grave-01.webp,face/grave-01.webp,costume/full/grave-01.webp
+5135,브래디,30056,프로스티 바이트,costume/mi/bready-01.webp,face/bready-01.webp,costume/full/bready-01.webp
+5144,소라,30062,스프링 플라이트,costume/mi/sora-01.webp,face/sora-01.webp,costume/full/sora-01.webp
+5111,베이,70007,래디언트 래빗,costume/mi/bay-01.webp,face/bay-01.webp,costume/full/bay-01.webp
+5115,클레이,30063,치얼 업 트레이닝,costume/mi/clay-01.webp,face/clay-01.webp,costume/full/clay-01.webp
+5122,팬텀,130006,세인트 시프,costume/mi/phantom-01.webp,face/phantom-01.webp,costume/full/phantom-01.webp
+5172,민트,30065,프레쉬 민트,costume/mi/mint-01.webp,face/mint-01.webp,costume/full/mint-01.webp
+5173,프리카,30066,쿨 파프리카,costume/mi/prika-01.webp,face/prika-01.webp,costume/full/prika-01.webp
+5089,마키마,30014,코트 오프,costume/mi/makima-01.webp,face/makima-01.webp,costume/full/makima-01.webp
+5094,2B,90001,중파상태,costume/mi/2b-01.webp,face/2b-01.webp,costume/full/2b-01.webp
+5094,2B,90002,요르하 제복1,costume/mi/2b-02.webp,face/2b-02.webp,costume/full/2b-02.webp
+5094,2B,90005,요르하 비공식 수변 활동 장비 1,costume/mi/2b-03.webp,face/2b-03.webp,costume/full/2b-03.webp
+5095,A2,90003,중파상태,costume/mi/a2-01.webp,face/a2-01.webp,costume/full/a2-01.webp
+5095,A2,90004,요르하 제복 프로토 타입,costume/mi/a2-02.webp,face/a2-02.webp,costume/full/a2-02.webp
+5095,A2,90006,요르하 비공식 수변 활동 장비 프로토타입,costume/mi/a2-03.webp,face/a2-03.webp,costume/full/a2-03.webp
+5108,렘,110001,핸디 메이드,costume/mi/rem-01.webp,face/rem-01.webp,costume/full/rem-01.webp
+5108,렘,110002,퓨어 블라썸,costume/mi/rem-02.webp,face/rem-02.webp,costume/full/rem-02.webp
+5109,에밀리아,110003,클럼지 메이드,costume/mi/emilia-01.webp,face/emilia-01.webp,costume/full/emilia-01.webp
+5109,에밀리아,110004,스프링 브리즈,costume/mi/emilia-02.webp,face/emilia-02.webp,costume/full/emilia-02.webp
+5118,아스카,110005,아스카의 교복,costume/mi/asuka-01.webp,face/asuka-01.webp,costume/full/asuka-01.webp
+5118,아스카,110008,시니컬 스트리트,costume/mi/asuka-02.webp,face/asuka-02.webp,costume/full/asuka-02.webp
+5118,아스카,110011,테스트용 플러그 슈트,costume/mi/asuka-03.webp,face/asuka-03.webp,costume/full/asuka-03.webp
+5119,레이,110006,레이의 교복,costume/mi/rei-2-01.webp,face/rei-2-01.webp,costume/full/rei-2-01.webp
+5119,레이,110009,피스풀 바캉스,costume/mi/rei-2-02.webp,face/rei-2-02.webp,costume/full/rei-2-02.webp
+5120,마리,110007,마리의 교복,costume/mi/mari-01.webp,face/mari-01.webp,costume/full/mari-01.webp
+5120,마리,110010,레저리 트래블,costume/mi/mari-02.webp,face/mari-02.webp,costume/full/mari-02.webp
+5120,마리,110016,최종 결전: 마리,costume/mi/mari-03.webp,face/mari-03.webp,costume/full/mari-03.webp
+5120,마리,110017,미스테리 뮤즈,costume/mi/mari-04.webp,face/mari-04.webp,costume/full/mari-04.webp
+5132,레이 (가칭),110014,제 3마을의 닮은꼴 씨,costume/mi/rei-tentative-name-01.webp,face/rei-tentative-name-01.webp,costume/full/rei-tentative-name-01.webp
+5132,레이 (가칭),110015,소울 커넥트,costume/mi/rei-tentative-name-02.webp,face/rei-tentative-name-02.webp,costume/full/rei-tentative-name-02.webp
+5133,아스카 : WILLE,110012,최종 결전: 아스카,costume/mi/asuka-wille-01.webp,face/asuka-wille-01.webp,costume/full/asuka-wille-01.webp
+5133,아스카 : WILLE,110013,오션 라멘트,costume/mi/asuka-wille-02.webp,face/asuka-wille-02.webp,costume/full/asuka-wille-02.webp
+5152,에이다,110024,SEPARATE WAYS,costume/mi/ada-01.webp,face/ada-01.webp,costume/full/ada-01.webp
+5152,에이다,110025,DRESS,costume/mi/ada-02.webp,face/ada-02.webp,costume/full/ada-02.webp
+5153,질,110026,CLASSIC,costume/mi/jill-01.webp,face/jill-01.webp,costume/full/jill-01.webp
+5153,질,110027,BATTLE SUIT,costume/mi/jill-02.webp,face/jill-02.webp,costume/full/jill-02.webp
+5142,이브,110018,키홀 드레스,costume/mi/eve-01.webp,face/eve-01.webp,costume/full/eve-01.webp
+5142,이브,110019,뉴로링크 슈트,costume/mi/eve-02.webp,face/eve-02.webp,costume/full/eve-02.webp
+5142,이브,110020,스킨 슈트,costume/mi/eve-03.webp,face/eve-03.webp,costume/full/eve-03.webp
+5143,레이븐,110021,플래닛 다이브 슈트(6th) V2,costume/mi/raven-01.webp,face/raven-01.webp,costume/full/raven-01.webp
+5143,레이븐,110022,미드서머 앨리스,costume/mi/raven-02.webp,face/raven-02.webp,costume/full/raven-02.webp
+5164,치사토,110028,DA 트레이닝 웨어(퍼스트),costume/mi/chisato-01.webp,face/chisato-01.webp,costume/full/chisato-01.webp
+5164,치사토,110029,레드 스파크 기타,costume/mi/chisato-02.webp,face/chisato-02.webp,costume/full/chisato-02.webp
+5165,타키나,110030,DA 트레이닝 웨어(세컨드),costume/mi/takina-01.webp,face/takina-01.webp,costume/full/takina-01.webp
+5165,타키나,110031,블루 펄스 베이스,costume/mi/takina-02.webp,face/takina-02.webp,costume/full/takina-02.webp
+5179,퀸(마코토),110032,슈진고교 학생회장,costume/mi/queen-makoto-01.webp,face/queen-makoto-01.webp,costume/full/queen-makoto-01.webp
+5179,퀸(마코토),110033,퀸즈 파자마 (Ver. NIKKE Collabo),costume/mi/queen-makoto-02.webp,face/queen-makoto-02.webp,costume/full/queen-makoto-02.webp
+5180,유키코,110034,아마기 여관의 기모노,costume/mi/yukiko-01.webp,face/yukiko-01.webp,costume/full/yukiko-01.webp
+5180,유키코,110035,윈터 레이디 룸웨어 (Ver. NIKKE Collabo),costume/mi/yukiko-02.webp,face/yukiko-02.webp,costume/full/yukiko-02.webp

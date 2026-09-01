@@ -148,6 +148,13 @@ button:disabled {
   font-weight: 800;
 }
 
+.importActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .panel {
   padding: 14px;
 }
@@ -201,9 +208,10 @@ button:disabled {
 }
 
 .slot {
-  min-height: 142px;
+  min-height: 236px;
   display: grid;
-  place-items: center;
+  align-content: start;
+  justify-items: center;
   gap: 5px;
   padding: 8px;
   border: 1px dashed #cbd5e1;
@@ -227,7 +235,7 @@ button:disabled {
 
 .slotImage {
   width: 100%;
-  height: 78px;
+  height: 100%;
   object-fit: cover;
   border-radius: 9px;
 }
@@ -299,7 +307,7 @@ button:disabled {
 
 .buffColumns {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-top: 8px;
 }
@@ -376,8 +384,143 @@ button:disabled {
   grid-template-columns: 1fr;
 }
 
+.rosterFilters {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.searchRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+}
+
+.filterGroup {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.filterGroup > span {
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.filterButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filterChip {
+  min-height: 32px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.filterChip.active {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
 .form {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.effectEditor {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.effectEditorHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.effectEditorHeader strong {
+  color: #1e293b;
+}
+
+.effectRow {
+  display: grid;
+  grid-template-columns: 0.8fr 0.8fr 1.7fr 0.75fr 1.2fr auto;
+  gap: 8px;
+  align-items: end;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.effectRow label {
+  font-size: 0.78rem;
+}
+
+.effectRemove {
+  margin-bottom: 1px;
+}
+
+.skillTextEditor {
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.skillTextEditor summary {
+  cursor: pointer;
+  color: #1e293b;
+  font-weight: 800;
+}
+
+.skillTextGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.imageUpload {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 104px minmax(180px, 0.8fr);
+  gap: 10px;
+  align-items: end;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.imagePreview {
+  width: 104px;
+  height: 72px;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #e2e8f0;
+}
+
+.imageUpload span {
+  color: #475569;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 label {
@@ -424,7 +567,7 @@ textarea {
 
 .tileList {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
   gap: 8px;
   max-height: calc(100vh - 250px);
   min-height: 240px;
@@ -465,7 +608,7 @@ textarea {
 
 .nikkeCard {
   display: grid;
-  grid-template-columns: 180px 1fr auto;
+  grid-template-columns: 128px 1fr auto;
   gap: 14px;
   align-items: start;
   padding: 12px;
@@ -493,15 +636,71 @@ textarea {
 .imageTooltipWrap {
   position: relative;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 1 / 2;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e2e8f0;
+}
+
+.faceImageWrap {
+  aspect-ratio: 1 / 1;
 }
 
 .portrait {
   width: 100%;
-  height: 118px;
+  height: 100%;
   object-fit: cover;
-  border-radius: 14px;
+  border-radius: 10px;
   background: #e2e8f0;
+}
+
+.tileImage,
+.slotImage,
+.portrait {
+  display: block;
+  aspect-ratio: 1 / 2;
+}
+
+.tileImage {
+  aspect-ratio: 1 / 1;
+}
+
+.imageInfoOverlay {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 2;
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  max-width: calc(100% - 12px);
+  text-align: right;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: 0;
+  -webkit-text-stroke: 0.35px #000;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 1px 2px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.imageInfoOverlay strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 0.72rem;
+  line-height: 1.05;
+}
+
+.imageInfoOverlay span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .portrait,
@@ -519,7 +718,7 @@ textarea {
   left: 50%;
   bottom: calc(100% + 10px);
   z-index: 20;
-  width: min(340px, 86vw);
+  width: min(380px, calc(100vw - 24px));
   padding: 10px;
   border: 1px solid #c7d2fe;
   border-radius: 14px;
@@ -552,7 +751,7 @@ textarea {
 .floatingTooltip .skillTooltip,
 .skillTooltip.visible {
   position: static;
-  max-height: calc(100vh - 24px);
+  max-height: min(420px, calc(100vh - 24px));
   overflow: auto;
   opacity: 1;
   transform: none;
@@ -630,6 +829,9 @@ textarea {
   .squadSlots,
   .analysisGrid,
   .buffColumns,
+  .effectRow,
+  .imageUpload,
+  .skillTextGrid,
   .form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -655,14 +857,27 @@ textarea {
   .squadSlots,
   .analysisGrid,
   .buffColumns,
+  .effectRow,
+  .imageUpload,
+  .searchRow,
+  .skillTextGrid,
   .filters,
   .form {
     grid-template-columns: 1fr;
   }
 
+  .filterGroup {
+    grid-template-columns: 1fr;
+  }
+
   .screenTabs,
   .sectionHeader,
+  .importActions,
   .actions {
     flex-direction: column;
+  }
+
+  .importActions {
+    align-items: stretch;
   }
 }

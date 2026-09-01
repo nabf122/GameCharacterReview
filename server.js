@@ -1,13 +1,23 @@
 import { execFileSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
-import { mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, extname, join, normalize, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dbDir = join(__dirname, 'data');
 const dbPath = join(dbDir, 'nikkes.sqlite');
+const uploadDir = join(dbDir, 'uploads');
+const dildoroDir = join(uploadDir, 'dildoro');
 const port = Number(process.env.API_PORT || 3001);
+const maxUploadBytes = 5 * 1024 * 1024;
+const imageMimeTypes = new Map([
+  ['image/jpeg', '.jpg'],
+  ['image/png', '.png'],
+  ['image/webp', '.webp'],
+  ['image/gif', '.gif'],
+]);
 
 const seedNikkes = [
   {
@@ -99,7 +109,10 @@ const columns = [
   'skill1',
   'skill2',
   'burstSkill',
+  'buffEffects',
   'imageUrl',
+  'faceImageUrl',
+  'fullImageUrl',
 ];
 
 const namuWikiTitleAliases = {
@@ -114,12 +127,37 @@ const runSql = (sql, json = false) => {
 
 const sqlString = (value) => `'${String(value ?? '').replaceAll("'", "''")}'`;
 
-const nikkeValues = (nikke) => columns.map((column) => sqlString(nikke[column])).join(', ');
+const serializeBuffEffects = (value) => JSON.stringify(Array.isArray(value) ? value : []);
 
-const rowById = (id) => runSql(`SELECT * FROM nikkes WHERE id = ${Number(id)};`, true)[0] || null;
+const valueForColumn = (nikke, column) => {
+  if (column === 'buffEffects') {
+    return serializeBuffEffects(nikke[column]);
+  }
+
+  return nikke[column];
+};
+
+const nikkeValues = (nikke) => columns.map((column) => sqlString(valueForColumn(nikke, column))).join(', ');
+
+const normalizeNikke = (nikke) => {
+  if (!nikke) {
+    return null;
+  }
+
+  try {
+    return { ...nikke, buffEffects: JSON.parse(nikke.buffEffects || '[]') };
+  } catch {
+    return { ...nikke, buffEffects: [] };
+  }
+};
+
+const normalizeNikkes = (rows) => rows.map(normalizeNikke);
+
+const rowById = (id) => normalizeNikke(runSql(`SELECT * FROM nikkes WHERE id = ${Number(id)};`, true)[0] || null);
 
 const initDb = () => {
   mkdirSync(dbDir, { recursive: true });
+  mkdirSync(uploadDir, { recursive: true });
   runSql(`
     PRAGMA foreign_keys = ON;
     CREATE TABLE IF NOT EXISTS nikkes (
@@ -135,13 +173,27 @@ const initDb = () => {
       skill1 TEXT NOT NULL DEFAULT '',
       skill2 TEXT NOT NULL DEFAULT '',
       burstSkill TEXT NOT NULL DEFAULT '',
-      imageUrl TEXT NOT NULL DEFAULT ''
+      buffEffects TEXT NOT NULL DEFAULT '[]',
+      imageUrl TEXT NOT NULL DEFAULT '',
+      faceImageUrl TEXT NOT NULL DEFAULT '',
+      fullImageUrl TEXT NOT NULL DEFAULT ''
     );
     CREATE TABLE IF NOT EXISTS squad_members (
       slot INTEGER PRIMARY KEY,
       nikkeId INTEGER NOT NULL REFERENCES nikkes(id) ON DELETE CASCADE
     );
   `);
+
+  const tableInfo = runSql('PRAGMA table_info(nikkes);', true);
+  if (!tableInfo.some((column) => column.name === 'buffEffects')) {
+    runSql("ALTER TABLE nikkes ADD COLUMN buffEffects TEXT NOT NULL DEFAULT '[]';");
+  }
+  if (!tableInfo.some((column) => column.name === 'faceImageUrl')) {
+    runSql("ALTER TABLE nikkes ADD COLUMN faceImageUrl TEXT NOT NULL DEFAULT '';");
+  }
+  if (!tableInfo.some((column) => column.name === 'fullImageUrl')) {
+    runSql("ALTER TABLE nikkes ADD COLUMN fullImageUrl TEXT NOT NULL DEFAULT '';");
+  }
 
   const [{ count }] = runSql('SELECT COUNT(*) AS count FROM nikkes;', true);
   if (count > 0) {
@@ -179,6 +231,24 @@ const readBody = (request) =>
     request.on('error', reject);
   });
 
+const readBufferBody = (request, limit = maxUploadBytes) =>
+  new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+
+    request.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > limit) {
+        request.destroy();
+        reject(new Error('Image file is too large.'));
+        return;
+      }
+      chunks.push(chunk);
+    });
+    request.on('end', () => resolve(Buffer.concat(chunks)));
+    request.on('error', reject);
+  });
+
 const sendJson = (response, status, payload) => {
   response.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
@@ -187,6 +257,89 @@ const sendJson = (response, status, payload) => {
     'Access-Control-Allow-Headers': 'Content-Type',
   });
   response.end(JSON.stringify(payload));
+};
+
+const sendFile = (response, filePath, contentType) => {
+  response.writeHead(200, {
+    'Content-Type': contentType,
+    'Access-Control-Allow-Origin': '*',
+    'Cache-Control': 'public, max-age=31536000, immutable',
+  });
+  response.end(readFileSync(filePath));
+};
+
+const getUploadContentType = (fileName) => {
+  const extension = extname(fileName).toLowerCase();
+  if (extension === '.jpg' || extension === '.jpeg') return 'image/jpeg';
+  if (extension === '.png') return 'image/png';
+  if (extension === '.webp') return 'image/webp';
+  if (extension === '.gif') return 'image/gif';
+  return '';
+};
+
+const resolveUploadPath = (uploadPath) => {
+  const normalizedPath = normalize(decodeURIComponent(uploadPath)).replace(/^(\.\.[/\\])+/, '');
+  const filePath = join(uploadDir, normalizedPath);
+  const relativePath = relative(uploadDir, filePath);
+  if (relativePath.startsWith('..') || relativePath.includes(`..${sep}`)) {
+    return null;
+  }
+
+  return filePath;
+};
+
+const parseMultipartImage = async (request) => {
+  const contentType = request.headers['content-type'] || '';
+  const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+  if (!boundaryMatch) {
+    throw new Error('Multipart boundary is missing.');
+  }
+
+  const boundary = Buffer.from(`--${boundaryMatch[1] || boundaryMatch[2]}`);
+  const body = await readBufferBody(request);
+  let offset = 0;
+
+  while (offset < body.length) {
+    const partStart = body.indexOf(boundary, offset);
+    if (partStart < 0) break;
+
+    const headerStart = partStart + boundary.length + 2;
+    const headerEnd = body.indexOf(Buffer.from('\r\n\r\n'), headerStart);
+    if (headerEnd < 0) break;
+
+    const headers = body.slice(headerStart, headerEnd).toString('utf8');
+    const dataStart = headerEnd + 4;
+    const nextBoundary = body.indexOf(boundary, dataStart);
+    if (nextBoundary < 0) break;
+
+    const dataEnd = Math.max(dataStart, nextBoundary - 2);
+    const nameMatch = headers.match(/name="([^"]+)"/i);
+    const fileNameMatch = headers.match(/filename="([^"]*)"/i);
+    const typeMatch = headers.match(/content-type:\s*([^\r\n]+)/i);
+
+    if (nameMatch?.[1] === 'image' && fileNameMatch?.[1]) {
+      const mimeType = typeMatch?.[1]?.trim().toLowerCase() || '';
+      const extension = imageMimeTypes.get(mimeType) || extname(fileNameMatch[1]).toLowerCase();
+      if (!imageMimeTypes.has(mimeType) || ![...imageMimeTypes.values()].includes(extension)) {
+        throw new Error('Only JPG, PNG, WebP, and GIF images are supported.');
+      }
+
+      const fileBuffer = body.slice(dataStart, dataEnd);
+      if (!fileBuffer.length) {
+        throw new Error('Image file is empty.');
+      }
+
+      return {
+        buffer: fileBuffer,
+        extension,
+        originalName: basename(fileNameMatch[1]),
+      };
+    }
+
+    offset = nextBoundary + boundary.length;
+  }
+
+  throw new Error('Image file field is missing.');
 };
 
 const sanitizeNikke = (input) => ({
@@ -201,7 +354,10 @@ const sanitizeNikke = (input) => ({
   skill1: String(input.skill1 || '').trim(),
   skill2: String(input.skill2 || '').trim(),
   burstSkill: String(input.burstSkill || '').trim(),
+  buffEffects: serializeBuffEffects(input.buffEffects),
   imageUrl: String(input.imageUrl || '').trim(),
+  faceImageUrl: String(input.faceImageUrl || '').trim(),
+  fullImageUrl: String(input.fullImageUrl || '').trim(),
 });
 
 const upsertSquad = (ids) => {
@@ -326,6 +482,170 @@ const importNamuWikiSsrSkills = async () => {
   return results;
 };
 
+const parseCsv = (text) => {
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let quoted = false;
+  const source = text.replace(/^\uFEFF/, '');
+
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index];
+
+    if (quoted) {
+      if (char === '"' && source[index + 1] === '"') {
+        cell += '"';
+        index += 1;
+      } else if (char === '"') {
+        quoted = false;
+      } else {
+        cell += char;
+      }
+    } else if (char === '"') {
+      quoted = true;
+    } else if (char === ',') {
+      row.push(cell);
+      cell = '';
+    } else if (char === '\n') {
+      row.push(cell.replace(/\r$/, ''));
+      rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += char;
+    }
+  }
+
+  if (cell || row.length) {
+    row.push(cell.replace(/\r$/, ''));
+    rows.push(row);
+  }
+
+  const headers = rows.shift() || [];
+  return rows
+    .filter((dataRow) => dataRow.some((value) => value !== ''))
+    .map((dataRow) => Object.fromEntries(headers.map((header, index) => [header, dataRow[index] || ''])));
+};
+
+const dildoroBurstMap = {
+  1: '버스트 I',
+  2: '버스트 II',
+  3: '버스트 III',
+};
+
+const normalizeDildoroCorporation = (corporation) => (corporation === '어브노말' ? '어브노멀' : corporation);
+
+const cleanDildoroSkillText = (skill) => {
+  const description = String(skill?.description || '').replace(/\r\n/g, '\n').trim();
+  if (!description) {
+    return '';
+  }
+
+  return `${skill.skill_name || '스킬'}\n${description}`;
+};
+
+const getDildoroImageUrl = (imagePath) => {
+  if (!imagePath) {
+    return '';
+  }
+
+  const filePath = join(dildoroDir, 'images', imagePath);
+  return existsSync(filePath) ? `/uploads/dildoro/images/${imagePath}` : '';
+};
+
+const loadDildoroData = () => {
+  const charactersPath = join(dildoroDir, 'tables', 'characters.csv');
+  const skillsPath = join(dildoroDir, 'tables', 'skills_all_levels.csv');
+
+  if (!existsSync(charactersPath) || !existsSync(skillsPath)) {
+    throw new Error('Dildoro tables were not found under data/uploads/dildoro/tables.');
+  }
+
+  const characters = parseCsv(readFileSync(charactersPath, 'utf8'));
+  const skills = parseCsv(readFileSync(skillsPath, 'utf8'));
+  const level10Skills = new Map();
+
+  skills
+    .filter((skill) => skill.level === '10')
+    .forEach((skill) => {
+      if (!level10Skills.has(skill.character_code)) {
+        level10Skills.set(skill.character_code, {});
+      }
+      level10Skills.get(skill.character_code)[skill.skill_no] = skill;
+    });
+
+  return { characters, level10Skills };
+};
+
+const dildoroCharacterToNikke = (character, level10Skills) => {
+  const skillSet = level10Skills.get(character.code) || {};
+  const imageUrl = getDildoroImageUrl(character.image);
+  const faceImageUrl = getDildoroImageUrl(character.face_image);
+  const fullImageUrl = getDildoroImageUrl(character.full_image);
+  const noteParts = [
+    character.status ? `상태: ${character.status}` : '',
+    character.note || '',
+  ].filter(Boolean);
+
+  return {
+    name: character.name,
+    rarity: character.rarity,
+    manufacturer: normalizeDildoroCorporation(character.corporation),
+    classType: character.class,
+    burst: dildoroBurstMap[character.burst_stage] || dildoroBurstMap[character.burst] || '버스트 I',
+    code: character.element,
+    weapon: character.weapon,
+    squadRole: noteParts.length ? noteParts.join(' · ') : `${character.class} · ${character.weapon} · ${character.element}`,
+    skill1: cleanDildoroSkillText(skillSet[1]),
+    skill2: cleanDildoroSkillText(skillSet[2]),
+    burstSkill: cleanDildoroSkillText(skillSet[3]),
+    buffEffects: [],
+    imageUrl,
+    faceImageUrl,
+    fullImageUrl,
+  };
+};
+
+const importDildoroCharacters = () => {
+  const { characters, level10Skills } = loadDildoroData();
+  const importableCharacters = characters.filter(
+    (character) => character.code && character.name && character.rarity === 'SSR',
+  );
+  const existingByName = new Map(runSql('SELECT id, name, buffEffects FROM nikkes;', true).map((row) => [row.name, row]));
+  let created = 0;
+  let updated = 0;
+  let skipped = characters.length - importableCharacters.length;
+  const statements = [];
+
+  importableCharacters.forEach((character) => {
+    const nikke = dildoroCharacterToNikke(character, level10Skills);
+    const existing = existingByName.get(nikke.name);
+
+    if (existing) {
+      const savedEffects = normalizeNikke(existing)?.buffEffects || [];
+      const payload = { ...nikke, buffEffects: savedEffects };
+      statements.push(
+        `UPDATE nikkes SET ${columns.map((column) => `${column} = ${sqlString(valueForColumn(payload, column))}`).join(', ')} WHERE id = ${Number(existing.id)};`,
+      );
+      updated += 1;
+      return;
+    }
+
+    statements.push(`INSERT INTO nikkes (${columns.join(', ')}) VALUES (${nikkeValues(nikke)});`);
+    created += 1;
+  });
+
+  runSql(`BEGIN;\n${statements.join('\n')}\nCOMMIT;`);
+
+  return {
+    created,
+    updated,
+    skipped,
+    total: importableCharacters.length,
+    nikkes: normalizeNikkes(runSql('SELECT * FROM nikkes ORDER BY id DESC;', true)),
+  };
+};
+
 const server = createServer(async (request, response) => {
   try {
     if (request.method === 'OPTIONS') {
@@ -336,13 +656,52 @@ const server = createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host}`);
     const path = url.pathname;
 
+    if (request.method === 'GET' && path.startsWith('/uploads/')) {
+      const uploadPath = path.slice('/uploads/'.length);
+      const filePath = resolveUploadPath(uploadPath);
+      const contentType = getUploadContentType(filePath || '');
+
+      if (!filePath || !contentType || !existsSync(filePath)) {
+        sendJson(response, 404, { error: 'Image not found.' });
+        return;
+      }
+
+      sendFile(response, filePath, contentType);
+      return;
+    }
+
     if (request.method === 'GET' && path === '/api/health') {
       sendJson(response, 200, { ok: true });
       return;
     }
 
+    if (request.method === 'POST' && path === '/api/uploads/images') {
+      const image = await parseMultipartImage(request);
+      const fileName = `${randomUUID()}${image.extension}`;
+      const filePath = join(uploadDir, fileName);
+
+      mkdirSync(uploadDir, { recursive: true });
+      writeFileSync(filePath, image.buffer);
+      sendJson(response, 201, {
+        imageUrl: `/uploads/${fileName}`,
+        originalName: image.originalName,
+        size: image.buffer.length,
+      });
+      return;
+    }
+
+    if (request.method === 'POST' && path === '/api/import/dildoro') {
+      const result = importDildoroCharacters();
+      sendJson(response, 200, {
+        ...result,
+        source: 'data/uploads/dildoro',
+        skillLevel: 10,
+      });
+      return;
+    }
+
     if (request.method === 'GET' && path === '/api/nikkes') {
-      sendJson(response, 200, runSql('SELECT * FROM nikkes ORDER BY id DESC;', true));
+      sendJson(response, 200, normalizeNikkes(runSql('SELECT * FROM nikkes ORDER BY id DESC;', true)));
       return;
     }
 
@@ -397,7 +756,7 @@ const server = createServer(async (request, response) => {
 
     if (request.method === 'POST' && path === '/api/import/namuwiki/ssr-skills') {
       const results = await importNamuWikiSsrSkills();
-      const nikkes = runSql('SELECT * FROM nikkes ORDER BY id DESC;', true);
+      const nikkes = normalizeNikkes(runSql('SELECT * FROM nikkes ORDER BY id DESC;', true));
       sendJson(response, 200, {
         imported: results.filter((result) => result.ok).length,
         failed: results.filter((result) => !result.ok).length,
