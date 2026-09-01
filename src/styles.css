@@ -58,8 +58,7 @@ button:disabled {
 }
 
 .hero h1,
-.panel h2,
-.analysisGrid h3 {
+.panel h2 {
   margin: 0;
 }
 
@@ -100,12 +99,6 @@ button:disabled {
   font-size: 1.05rem;
 }
 
-.screenTabs {
-  display: flex;
-  gap: 8px;
-}
-
-.tab,
 .button {
   border: 0;
   border-radius: 999px;
@@ -113,13 +106,6 @@ button:disabled {
   font-weight: 700;
 }
 
-.tab {
-  padding: 9px 14px;
-  background: #e2e8f0;
-  color: #334155;
-}
-
-.tab.active,
 .button {
   background: #2563eb;
   color: #fff;
@@ -201,29 +187,113 @@ button:disabled {
   align-items: start;
 }
 
+.rosterPanel {
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+}
+
+.categoryTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.categoryTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.categoryTab.active {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
+.categoryTab span {
+  opacity: 0.78;
+  font-size: 0.74rem;
+}
+
+.squadStack {
+  display: grid;
+  gap: 12px;
+}
+
+.squadBlock {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.squadBlock.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.squadBlockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.squadBlockHeader h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 .squadSlots {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
+.squadSlots.compact {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .slot {
-  min-height: 236px;
+  position: relative;
+  width: 100%;
+  min-width: 0;
   display: grid;
   align-content: start;
   justify-items: center;
   gap: 5px;
-  padding: 8px;
-  border: 1px dashed #cbd5e1;
+  padding: 0;
+  border: 0;
   border-radius: 12px;
-  background: #f8fafc;
+  background: transparent;
   color: #94a3b8;
   text-align: center;
+  overflow: visible;
 }
 
 .slot.filled {
-  border-style: solid;
   color: #1e293b;
+}
+
+.slot:not(.filled) {
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  align-content: center;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
 }
 
 .slot.dragOver {
@@ -236,8 +306,10 @@ button:disabled {
 .slotImage {
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  border-radius: 9px;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
 }
 
 .slot strong,
@@ -257,107 +329,87 @@ button:disabled {
   font-size: 0.78rem;
 }
 
-.analysisGrid {
+.compositionCheck {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 10px;
-}
-
-.analysisGrid > div {
-  padding: 10px;
-  border-radius: 10px;
-  background: #f8fafc;
-}
-
-.analysisGrid p {
-  margin: 5px 0 0;
-  color: #475569;
-  font-size: 0.82rem;
-}
-
-.analysisGrid h3 {
-  font-size: 0.92rem;
-}
-
-.buffSummary {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 10px;
-  background: #f8fafc;
-}
-
-.buffHeader {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-}
-
-.buffHeader h3 {
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-.buffHeader span {
-  color: #475569;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.buffColumns {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.buffColumns > div {
-  display: grid;
   align-content: start;
-  gap: 6px;
-}
-
-.buffColumns strong {
-  color: #1e293b;
-  font-size: 0.86rem;
-}
-
-.buffItem {
-  border: 1px solid #e2e8f0;
+  padding: 9px;
   border-radius: 8px;
-  background: #fff;
+  background: #f8fafc;
 }
 
-.buffItem summary {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 8px;
+.squadAnalysisDetails {
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.squadAnalysisDetails summary {
   cursor: pointer;
-  color: #0f172a;
-  font-size: 0.82rem;
+  padding: 9px;
+  color: #1e293b;
+  font-size: 0.9rem;
   font-weight: 800;
 }
 
-.buffItem summary span {
-  color: #2563eb;
-  white-space: nowrap;
+.squadAnalysisBody {
+  display: grid;
+  gap: 8px;
+  padding: 0 9px 9px;
 }
 
-.buffItem p,
+.effectCheck {
+  background: #f1f5f9;
+}
+
+.effectCheckGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+
+.compositionCheck h3 {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.checkList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+  align-items: flex-start;
+}
+
+.checkList span {
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: #fff;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+.buffEffect {
+  color: #047857 !important;
+  font-weight: 700;
+}
+
+.debuffEffect {
+  color: #be123c !important;
+  font-weight: 700;
+}
+
+.utilityEffect {
+  color: #7c3aed !important;
+  font-weight: 700;
+}
+
 .emptyBuff {
   margin: 0;
   padding: 0 8px 8px;
   color: #475569;
   font-size: 0.78rem;
   line-height: 1.35;
-}
-
-.buffItem b {
-  display: block;
-  margin: 2px 0;
-  color: #0f172a;
 }
 
 .passed {
@@ -413,6 +465,16 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.manufacturerFilterGroup .filterButtons {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.manufacturerFilterGroup .filterChip {
+  flex: 0 0 auto;
 }
 
 .filterChip {
@@ -531,6 +593,18 @@ label {
   font-weight: 700;
 }
 
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  gap: 8px;
+  min-height: 40px;
+}
+
+.checkboxLabel input {
+  width: auto;
+}
+
 .full {
   grid-column: 1 / -1;
 }
@@ -598,6 +672,39 @@ textarea {
   transform: scale(0.96);
 }
 
+.nikkeTile.unavailable {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.tileUnavailableBadge {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 3;
+  max-width: calc(100% - 12px);
+  border-radius: 999px;
+  padding: 3px 6px;
+  background: rgba(15, 23, 42, 0.84);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.tileFavoriteBadge {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  z-index: 3;
+  max-width: calc(100% - 12px);
+  border-radius: 999px;
+  padding: 3px 6px;
+  background: rgba(217, 119, 6, 0.92);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
 .tileImage {
   width: 100%;
   height: 100%;
@@ -663,6 +770,10 @@ textarea {
 }
 
 .tileImage {
+  aspect-ratio: 1 / 1;
+}
+
+.slotImage {
   aspect-ratio: 1 / 1;
 }
 
@@ -801,6 +912,11 @@ textarea {
   color: #be185d;
 }
 
+.badge.favorite {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
 .cardBody p {
   margin: 8px 0 0;
   color: #475569;
@@ -825,10 +941,13 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .rosterPanel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
   .summaryGrid,
-  .squadSlots,
-  .analysisGrid,
-  .buffColumns,
   .effectRow,
   .imageUpload,
   .skillTextGrid,
@@ -854,9 +973,6 @@ textarea {
   }
 
   .summaryGrid,
-  .squadSlots,
-  .analysisGrid,
-  .buffColumns,
   .effectRow,
   .imageUpload,
   .searchRow,
@@ -870,7 +986,6 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .screenTabs,
   .sectionHeader,
   .importActions,
   .actions {

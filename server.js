@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const dbDir = join(__dirname, 'data');
 const dbPath = join(dbDir, 'nikkes.sqlite');
 const uploadDir = join(dbDir, 'uploads');
-const dildoroDir = join(uploadDir, 'dildoro');
+const nikkeDataDir = join(uploadDir, 'nikke');
 const port = Number(process.env.API_PORT || 3001);
 const maxUploadBytes = 5 * 1024 * 1024;
 const imageMimeTypes = new Map([
@@ -18,6 +18,11 @@ const imageMimeTypes = new Map([
   ['image/webp', '.webp'],
   ['image/gif', '.gif'],
 ]);
+const squadCategories = [
+  { key: 'soloRaid', squadCount: 5 },
+  { key: 'unionRaid', squadCount: 3 },
+  { key: 'arena', squadCount: 3 },
+];
 
 const seedNikkes = [
   {
@@ -105,6 +110,7 @@ const columns = [
   'burst',
   'code',
   'weapon',
+  'favoriteItemAvailable',
   'squadRole',
   'skill1',
   'skill2',
@@ -129,9 +135,15 @@ const sqlString = (value) => `'${String(value ?? '').replaceAll("'", "''")}'`;
 
 const serializeBuffEffects = (value) => JSON.stringify(Array.isArray(value) ? value : []);
 
+const boolText = (value) => (value ? '1' : '0');
+
 const valueForColumn = (nikke, column) => {
   if (column === 'buffEffects') {
     return serializeBuffEffects(nikke[column]);
+  }
+
+  if (column === 'favoriteItemAvailable') {
+    return boolText(nikke[column]);
   }
 
   return nikke[column];
@@ -145,9 +157,17 @@ const normalizeNikke = (nikke) => {
   }
 
   try {
-    return { ...nikke, buffEffects: JSON.parse(nikke.buffEffects || '[]') };
+    return {
+      ...nikke,
+      favoriteItemAvailable: nikke.favoriteItemAvailable === true || nikke.favoriteItemAvailable === 1 || nikke.favoriteItemAvailable === '1',
+      buffEffects: JSON.parse(nikke.buffEffects || '[]'),
+    };
   } catch {
-    return { ...nikke, buffEffects: [] };
+    return {
+      ...nikke,
+      favoriteItemAvailable: nikke.favoriteItemAvailable === true || nikke.favoriteItemAvailable === 1 || nikke.favoriteItemAvailable === '1',
+      buffEffects: [],
+    };
   }
 };
 
@@ -169,6 +189,7 @@ const initDb = () => {
       burst TEXT NOT NULL,
       code TEXT NOT NULL,
       weapon TEXT NOT NULL,
+      favoriteItemAvailable TEXT NOT NULL DEFAULT '0',
       squadRole TEXT NOT NULL,
       skill1 TEXT NOT NULL DEFAULT '',
       skill2 TEXT NOT NULL DEFAULT '',
@@ -182,11 +203,55 @@ const initDb = () => {
       slot INTEGER PRIMARY KEY,
       nikkeId INTEGER NOT NULL REFERENCES nikkes(id) ON DELETE CASCADE
     );
+    CREATE TABLE IF NOT EXISTS squads (
+      id INTEGER PRIMARY KEY
+    );
   `);
+
+  const squadTableInfo = runSql('PRAGMA table_info(squad_members);', true);
+  const squadsTableInfo = runSql('PRAGMA table_info(squads);', true);
+  if (!squadTableInfo.some((column) => column.name === 'category') || !squadsTableInfo.some((column) => column.name === 'category')) {
+    const migratedSquadIdExpression = squadTableInfo.some((column) => column.name === 'squadId') ? 'squadId' : '0';
+    runSql(`
+      BEGIN;
+      CREATE TABLE squads_new (
+        category TEXT NOT NULL,
+        id INTEGER NOT NULL,
+        PRIMARY KEY (category, id)
+      );
+      CREATE TABLE squad_members_new (
+        category TEXT NOT NULL,
+        squadId INTEGER NOT NULL,
+        slot INTEGER NOT NULL,
+        nikkeId INTEGER NOT NULL REFERENCES nikkes(id) ON DELETE CASCADE,
+        PRIMARY KEY (category, squadId, slot),
+        UNIQUE (category, nikkeId)
+      );
+      INSERT INTO squads_new (category, id)
+      SELECT 'soloRaid', id FROM squads
+      UNION
+      SELECT 'soloRaid', 0;
+      INSERT INTO squad_members_new (category, squadId, slot, nikkeId)
+      SELECT 'soloRaid', ${migratedSquadIdExpression}, slot, nikkeId FROM squad_members ORDER BY slot;
+      DROP TABLE squad_members;
+      DROP TABLE squads;
+      ALTER TABLE squad_members_new RENAME TO squad_members;
+      ALTER TABLE squads_new RENAME TO squads;
+      COMMIT;
+    `);
+  }
+
+  const categoryInserts = squadCategories
+    .flatMap((category) => Array.from({ length: category.squadCount }, (_, index) => `(${sqlString(category.key)}, ${index})`))
+    .join(', ');
+  runSql(`INSERT OR IGNORE INTO squads (category, id) VALUES ${categoryInserts};`);
 
   const tableInfo = runSql('PRAGMA table_info(nikkes);', true);
   if (!tableInfo.some((column) => column.name === 'buffEffects')) {
     runSql("ALTER TABLE nikkes ADD COLUMN buffEffects TEXT NOT NULL DEFAULT '[]';");
+  }
+  if (!tableInfo.some((column) => column.name === 'favoriteItemAvailable')) {
+    runSql("ALTER TABLE nikkes ADD COLUMN favoriteItemAvailable TEXT NOT NULL DEFAULT '0';");
   }
   if (!tableInfo.some((column) => column.name === 'faceImageUrl')) {
     runSql("ALTER TABLE nikkes ADD COLUMN faceImageUrl TEXT NOT NULL DEFAULT '';");
@@ -206,7 +271,9 @@ const initDb = () => {
   runSql(`
     BEGIN;
     ${inserts}
-    INSERT INTO squad_members (slot, nikkeId) VALUES (0, 1), (1, 2), (2, 3), (3, 4);
+    INSERT OR IGNORE INTO squads (category, id) VALUES ${categoryInserts};
+    INSERT INTO squad_members (category, squadId, slot, nikkeId)
+    VALUES ('soloRaid', 0, 0, 1), ('soloRaid', 0, 1, 2), ('soloRaid', 0, 2, 3), ('soloRaid', 0, 3, 4);
     COMMIT;
   `);
 };
@@ -350,6 +417,7 @@ const sanitizeNikke = (input) => ({
   burst: String(input.burst || ''),
   code: String(input.code || ''),
   weapon: String(input.weapon || ''),
+  favoriteItemAvailable: Boolean(input.favoriteItemAvailable),
   squadRole: String(input.squadRole || '').trim(),
   skill1: String(input.skill1 || '').trim(),
   skill2: String(input.skill2 || '').trim(),
@@ -360,22 +428,69 @@ const sanitizeNikke = (input) => ({
   fullImageUrl: String(input.fullImageUrl || '').trim(),
 });
 
-const upsertSquad = (ids) => {
-  const uniqueIds = [...new Set(ids.map(Number).filter(Boolean))].slice(0, 5);
-  const existingIds = runSql(`SELECT id FROM nikkes WHERE id IN (${uniqueIds.join(',') || 'NULL'});`, true).map((row) => row.id);
-  const values = uniqueIds
-    .filter((id) => existingIds.includes(id))
-    .map((id, index) => `(${index}, ${id})`)
+const normalizeSquadGroups = (groups) => {
+  const usedIds = new Set();
+  const sourceGroups = Array.isArray(groups?.[0]) ? groups : [Array.isArray(groups) ? groups : []];
+  const existingIds = new Set(runSql('SELECT id FROM nikkes;', true).map((row) => row.id));
+
+  return sourceGroups.map((group) => {
+    const squad = [];
+    for (const id of group.map(Number).filter(Boolean)) {
+      if (squad.length >= 5) {
+        break;
+      }
+      if (!existingIds.has(id) || usedIds.has(id)) {
+        continue;
+      }
+      squad.push(id);
+      usedIds.add(id);
+    }
+    return squad;
+  });
+};
+
+const normalizeSquadCategories = (input) =>
+  Object.fromEntries(
+    squadCategories.map((category) => [
+      category.key,
+      normalizeSquadGroups(input?.[category.key] || []).slice(0, category.squadCount),
+    ]),
+  );
+
+const readSquads = () => {
+  const result = Object.fromEntries(squadCategories.map((category) => [category.key, Array.from({ length: category.squadCount }, () => [])]));
+  const rows = runSql('SELECT category, squadId, slot, nikkeId AS id FROM squad_members ORDER BY category, squadId, slot;', true);
+  rows.forEach((row) => {
+    const squad = result[row.category]?.[row.squadId];
+    if (squad && row.slot < 5) {
+      squad[row.slot] = row.id;
+    }
+  });
+
+  return Object.fromEntries(Object.entries(result).map(([category, squads]) => [category, squads.map((ids) => ids.filter(Boolean))]));
+};
+
+const upsertSquads = (input) => {
+  const categoryGroups = normalizeSquadCategories(Array.isArray(input) ? { soloRaid: input } : input);
+  const squadValues = squadCategories
+    .flatMap((category) => Array.from({ length: category.squadCount }, (_, squadIndex) => `(${sqlString(category.key)}, ${squadIndex})`))
+    .join(', ');
+  const values = Object.entries(categoryGroups)
+    .flatMap(([category, squads]) =>
+      squads.flatMap((ids, squadIndex) => ids.map((id, slotIndex) => `(${sqlString(category)}, ${squadIndex}, ${slotIndex}, ${id})`)),
+    )
     .join(', ');
 
   runSql(`
     BEGIN;
     DELETE FROM squad_members;
-    ${values ? `INSERT INTO squad_members (slot, nikkeId) VALUES ${values};` : ''}
+    DELETE FROM squads;
+    INSERT INTO squads (category, id) VALUES ${squadValues};
+    ${values ? `INSERT INTO squad_members (category, squadId, slot, nikkeId) VALUES ${values};` : ''}
     COMMIT;
   `);
 
-  return runSql('SELECT nikkeId AS id FROM squad_members ORDER BY slot;', true).map((row) => row.id);
+  return readSquads();
 };
 
 const htmlEntities = {
@@ -527,15 +642,15 @@ const parseCsv = (text) => {
     .map((dataRow) => Object.fromEntries(headers.map((header, index) => [header, dataRow[index] || ''])));
 };
 
-const dildoroBurstMap = {
+const nikkeBurstMap = {
   1: '버스트 I',
   2: '버스트 II',
   3: '버스트 III',
 };
 
-const normalizeDildoroCorporation = (corporation) => (corporation === '어브노말' ? '어브노멀' : corporation);
+const normalizeNikkeCorporation = (corporation) => (corporation === '어브노말' ? '어브노멀' : corporation);
 
-const cleanDildoroSkillText = (skill) => {
+const cleanNikkeSkillText = (skill) => {
   const description = String(skill?.description || '').replace(/\r\n/g, '\n').trim();
   if (!description) {
     return '';
@@ -544,26 +659,54 @@ const cleanDildoroSkillText = (skill) => {
   return `${skill.skill_name || '스킬'}\n${description}`;
 };
 
-const getDildoroImageUrl = (imagePath) => {
+const getNikkeImageUrl = (imagePath) => {
   if (!imagePath) {
     return '';
   }
 
-  const filePath = join(dildoroDir, 'images', imagePath);
-  return existsSync(filePath) ? `/uploads/dildoro/images/${imagePath}` : '';
+  const filePath = join(nikkeDataDir, 'images', imagePath);
+  return existsSync(filePath) ? `/uploads/nikke/images/${imagePath}` : '';
 };
 
-const loadDildoroData = () => {
-  const charactersPath = join(dildoroDir, 'tables', 'characters.csv');
-  const skillsPath = join(dildoroDir, 'tables', 'skills_all_levels.csv');
+const getResourceIdFromFavoriteIcon = (iconFile) => {
+  const resourceId = String(iconFile || '').match(/c(\d+)_/)?.[1];
+  return resourceId ? resourceId.replace(/^0+/, '') : '';
+};
+
+const loadFavoriteItemReference = () => {
+  const referencePath = join(nikkeDataDir, 'tables', 'calculation_reference.json');
+  if (!existsSync(referencePath)) {
+    return { names: new Set(), skillCodeByName: new Map() };
+  }
+
+  const reference = JSON.parse(readFileSync(referencePath, 'utf8'));
+  const names = new Set(Array.isArray(reference?.fav_chars) ? reference.fav_chars : Object.keys(reference?.fav_icons?.by_char || {}));
+  const skillCodeByResourceId = new Map(Object.entries(reference?.id_map || {}).map(([code, resourceId]) => [String(resourceId), String(code)]));
+  const skillCodeByName = new Map();
+
+  Object.entries(reference?.fav_icons?.by_char || {}).forEach(([name, iconFile]) => {
+    const resourceId = getResourceIdFromFavoriteIcon(iconFile);
+    const skillCode = skillCodeByResourceId.get(resourceId);
+    if (skillCode) {
+      skillCodeByName.set(name, skillCode);
+    }
+  });
+
+  return { names, skillCodeByName };
+};
+
+const loadNikkeData = () => {
+  const charactersPath = join(nikkeDataDir, 'tables', 'characters.csv');
+  const skillsPath = join(nikkeDataDir, 'tables', 'skills_all_levels.csv');
 
   if (!existsSync(charactersPath) || !existsSync(skillsPath)) {
-    throw new Error('Dildoro tables were not found under data/uploads/dildoro/tables.');
+    throw new Error('Nikke tables were not found under data/uploads/nikke/tables.');
   }
 
   const characters = parseCsv(readFileSync(charactersPath, 'utf8'));
   const skills = parseCsv(readFileSync(skillsPath, 'utf8'));
   const level10Skills = new Map();
+  const favoriteItemReference = loadFavoriteItemReference();
 
   skills
     .filter((skill) => skill.level === '10')
@@ -574,14 +717,20 @@ const loadDildoroData = () => {
       level10Skills.get(skill.character_code)[skill.skill_no] = skill;
     });
 
-  return { characters, level10Skills };
+  return { characters, level10Skills, favoriteItemReference };
 };
 
-const dildoroCharacterToNikke = (character, level10Skills) => {
-  const skillSet = level10Skills.get(character.code) || {};
-  const imageUrl = getDildoroImageUrl(character.image);
-  const faceImageUrl = getDildoroImageUrl(character.face_image);
-  const fullImageUrl = getDildoroImageUrl(character.full_image);
+const getSkillSetForCharacter = (character, level10Skills, favoriteItemReference) => {
+  const favoriteSkillCode = favoriteItemReference.skillCodeByName.get(character.name);
+  return level10Skills.get(favoriteSkillCode) || level10Skills.get(character.code) || {};
+};
+
+const sourceCharacterToNikke = (character, level10Skills, favoriteItemReference) => {
+  const skillSet = getSkillSetForCharacter(character, level10Skills, favoriteItemReference);
+  const imageUrl = getNikkeImageUrl(character.image);
+  const faceImageUrl = getNikkeImageUrl(character.face_image);
+  const fullImageUrl = getNikkeImageUrl(character.full_image);
+  const favoriteItemAvailable = favoriteItemReference.names.has(character.name);
   const noteParts = [
     character.status ? `상태: ${character.status}` : '',
     character.note || '',
@@ -590,15 +739,16 @@ const dildoroCharacterToNikke = (character, level10Skills) => {
   return {
     name: character.name,
     rarity: character.rarity,
-    manufacturer: normalizeDildoroCorporation(character.corporation),
+    manufacturer: normalizeNikkeCorporation(character.corporation),
     classType: character.class,
-    burst: dildoroBurstMap[character.burst_stage] || dildoroBurstMap[character.burst] || '버스트 I',
+    burst: nikkeBurstMap[character.burst_stage] || nikkeBurstMap[character.burst] || '버스트 I',
     code: character.element,
     weapon: character.weapon,
+    favoriteItemAvailable,
     squadRole: noteParts.length ? noteParts.join(' · ') : `${character.class} · ${character.weapon} · ${character.element}`,
-    skill1: cleanDildoroSkillText(skillSet[1]),
-    skill2: cleanDildoroSkillText(skillSet[2]),
-    burstSkill: cleanDildoroSkillText(skillSet[3]),
+    skill1: cleanNikkeSkillText(skillSet[1]),
+    skill2: cleanNikkeSkillText(skillSet[2]),
+    burstSkill: cleanNikkeSkillText(skillSet[3]),
     buffEffects: [],
     imageUrl,
     faceImageUrl,
@@ -606,8 +756,8 @@ const dildoroCharacterToNikke = (character, level10Skills) => {
   };
 };
 
-const importDildoroCharacters = () => {
-  const { characters, level10Skills } = loadDildoroData();
+const importNikkeCharacters = () => {
+  const { characters, level10Skills, favoriteItemReference } = loadNikkeData();
   const importableCharacters = characters.filter(
     (character) => character.code && character.name && character.rarity === 'SSR',
   );
@@ -618,7 +768,7 @@ const importDildoroCharacters = () => {
   const statements = [];
 
   importableCharacters.forEach((character) => {
-    const nikke = dildoroCharacterToNikke(character, level10Skills);
+    const nikke = sourceCharacterToNikke(character, level10Skills, favoriteItemReference);
     const existing = existingByName.get(nikke.name);
 
     if (existing) {
@@ -690,11 +840,11 @@ const server = createServer(async (request, response) => {
       return;
     }
 
-    if (request.method === 'POST' && path === '/api/import/dildoro') {
-      const result = importDildoroCharacters();
+    if (request.method === 'POST' && path === '/api/import/nikke') {
+      const result = importNikkeCharacters();
       sendJson(response, 200, {
         ...result,
-        source: 'data/uploads/dildoro',
+        source: 'data/uploads/nikke',
         skillLevel: 10,
       });
       return;
@@ -729,7 +879,7 @@ const server = createServer(async (request, response) => {
         return;
       }
 
-      runSql(`UPDATE nikkes SET ${columns.map((column) => `${column} = ${sqlString(nikke[column])}`).join(', ')} WHERE id = ${id};`);
+      runSql(`UPDATE nikkes SET ${columns.map((column) => `${column} = ${sqlString(valueForColumn(nikke, column))}`).join(', ')} WHERE id = ${id};`);
       const updated = rowById(id);
       sendJson(response, updated ? 200 : 404, updated || { error: 'Nikke not found.' });
       return;
@@ -743,14 +893,13 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === 'GET' && path === '/api/squad') {
-      const squadIds = runSql('SELECT nikkeId AS id FROM squad_members ORDER BY slot;', true).map((row) => row.id);
-      sendJson(response, 200, squadIds);
+      sendJson(response, 200, readSquads());
       return;
     }
 
     if (request.method === 'PUT' && path === '/api/squad') {
       const body = await readBody(request);
-      sendJson(response, 200, upsertSquad(Array.isArray(body.ids) ? body.ids : []));
+      sendJson(response, 200, upsertSquads(body.categories || body.squads || body.ids));
       return;
     }
 

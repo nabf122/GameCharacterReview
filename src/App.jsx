@@ -6,6 +6,11 @@ const bursts = ['버스트 I', '버스트 II', '버스트 III'];
 const codes = ['작열', '수냉', '전격', '철갑', '풍압'];
 const weapons = ['AR', 'SMG', 'MG', 'SG', 'SR', 'RL'];
 const rarities = ['SSR', 'SR', 'R'];
+const squadCategoryDefs = [
+  { key: 'soloRaid', label: '솔로 레이드', squadCount: 5 },
+  { key: 'unionRaid', label: '유니온 레이드', squadCount: 3 },
+  { key: 'arena', label: '아레나', squadCount: 3 },
+];
 
 const initialNikkes = [
   {
@@ -93,6 +98,7 @@ const createEmptyForm = () => ({
   burst: bursts[0],
   code: codes[0],
   weapon: weapons[0],
+  favoriteItemAvailable: false,
   squadRole: '',
   skill1: '',
   skill2: '',
@@ -107,6 +113,7 @@ const API_BASE = '/api';
 
 const buffEffectTypes = [
   { key: 'attackUp', label: '공격력 증가', kind: 'buff' },
+  { key: 'attackDown', label: '공격력 감소', kind: 'debuff' },
   { key: 'critRateUp', label: '크리티컬 증가', kind: 'buff' },
   { key: 'critDamageUp', label: '크리티컬 대미지 증가', kind: 'buff' },
   { key: 'coreDamageUp', label: '코어대미지 증가', kind: 'buff' },
@@ -120,6 +127,17 @@ const buffEffectTypes = [
   { key: 'chargeDamageUp', label: '차지 대미지 증가', kind: 'buff' },
   { key: 'elementDamageUp', label: '우월코드 대미지 증가', kind: 'buff' },
   { key: 'distributedDamageUp', label: '분배 대미지 증가', kind: 'buff' },
+  { key: 'accuracyUp', label: '명중률 증가', kind: 'utility' },
+  { key: 'defenseUp', label: '방어력 증가', kind: 'utility' },
+  { key: 'defenseDown', label: '방어력 감소', kind: 'debuff' },
+  { key: 'chargeSpeedUp', label: '차지 속도 증가', kind: 'utility' },
+  { key: 'attackSpeedUp', label: '공격 속도 증가', kind: 'utility' },
+  { key: 'reloadSpeedUp', label: '재장전 속도 증가', kind: 'utility' },
+  { key: 'heal', label: '체력 회복', kind: 'utility' },
+  { key: 'barrier', label: '보호막', kind: 'utility' },
+  { key: 'maxAmmoUp', label: '최대 장탄 수 증가', kind: 'utility' },
+  { key: 'ammoCharge', label: '탄환 충전', kind: 'utility' },
+  { key: 'burstCooldownDown', label: '버스트 쿨타임 감소', kind: 'utility' },
   { key: 'damageTakenUp', label: '받는 대미지 증가', kind: 'debuff' },
 ];
 
@@ -135,6 +153,272 @@ const skillTextFields = [
   { name: 'skill2', label: '2스킬', placeholder: '2스킬 원문/메모를 입력하세요' },
   { name: 'burstSkill', label: '버스트 스킬', placeholder: '버스트 스킬 원문/메모를 입력하세요' },
 ];
+
+const createEmptySquadCategories = () =>
+  Object.fromEntries(squadCategoryDefs.map((category) => [category.key, Array.from({ length: category.squadCount }, () => [])]));
+
+const normalizeSquadIds = (payload) => {
+  if (Array.isArray(payload)) {
+    return payload.map(Number).filter(Boolean).slice(0, 5);
+  }
+
+  return [];
+};
+
+const normalizeSquadCategories = (payload) => {
+  const normalized = createEmptySquadCategories();
+
+  if (Array.isArray(payload)) {
+    normalized.soloRaid[0] = normalizeSquadIds(payload);
+    return normalized;
+  }
+
+  squadCategoryDefs.forEach((category) => {
+    const groups = Array.isArray(payload?.[category.key]) ? payload[category.key] : [];
+    normalized[category.key] = Array.from({ length: category.squadCount }, (_, index) => normalizeSquadIds(groups[index] || []));
+  });
+
+  return normalized;
+};
+
+const setSquadIdsInCategories = (categories, categoryKey, squadIndex, ids) => {
+  const next = normalizeSquadCategories(categories);
+  next[categoryKey][squadIndex] = normalizeSquadIds(ids);
+  return next;
+};
+
+const analyzeSquadComposition = (squad) => {
+  const burstCounts = bursts.reduce((counts, burst) => {
+    counts[burst] = squad.filter((nikke) => nikke.burst === burst).length;
+    return counts;
+  }, {});
+
+  const classCounts = classes.reduce((counts, classType) => {
+    counts[classType] = squad.filter((nikke) => nikke.classType === classType).length;
+    return counts;
+  }, {});
+
+  return [
+    { label: '5명', passed: squad.length === 5 },
+    { label: '버스트 I', passed: burstCounts['버스트 I'] > 0 },
+    { label: '버스트 II', passed: burstCounts['버스트 II'] > 0 },
+    { label: '버스트 III', passed: burstCounts['버스트 III'] > 0 },
+    { label: '화력 2+', passed: classCounts['화력형'] >= 2 },
+    { label: '지원/방어', passed: classCounts['지원형'] + classCounts['방어형'] > 0 },
+  ];
+};
+
+const effectRules = [
+  { label: '버스트 쿨타임 감소', kind: 'utility', names: ['버스트 스킬 재사용 시간'], directions: ['▼'] },
+  { label: '재장전 속도', kind: 'utility', names: ['재장전 속도'], directions: ['▲'] },
+  { label: '재장전 시간 감소', kind: 'utility', names: ['재장전 시간'], directions: ['▼'] },
+  { label: '체력 회복', kind: 'utility', names: ['체력 회복', '엄폐물 체력 회복'], directions: [] },
+  { label: '회복량 증가', kind: 'utility', names: ['받는 체력 회복량', '체력 회복량'], directions: ['▲'] },
+  { label: '최대 장탄 수', kind: 'utility', names: ['최대 장탄 수'], directions: ['▲'] },
+  { label: '탄환 충전', kind: 'utility', names: ['탄환 충전'], directions: ['▲', '충전'] },
+  { label: '명중률', kind: 'utility', names: ['명중률'], directions: ['▲'] },
+  { label: '방어력 증가', kind: 'utility', names: ['방어력', '시전자 기준 방어력'], directions: ['▲'] },
+  { label: '방어력 감소', kind: 'debuff', names: ['방어력'], directions: ['▼'] },
+  { label: '최대 체력', kind: 'utility', names: ['최대 체력', '최대 체력만'], directions: ['▲'] },
+  { label: '차지 속도', kind: 'utility', names: ['차지 속도'], directions: ['▲'] },
+  { label: '공격 속도', kind: 'utility', names: ['공격 속도'], directions: ['▲'] },
+  { label: '보호막', kind: 'utility', names: ['아군 공용 보호막', '보호막'], directions: ['보호막'] },
+  { label: '시전자 기준 공격력 증가', kind: 'buff', names: ['시전자 기준 공격력'], directions: ['▲'] },
+  { label: '우월코드 공격 대미지', kind: 'buff', names: ['우월 코드 공격 대미지', '우월코드 공격 대미지'], directions: ['▲'] },
+  { label: '방어력 무시 대미지', kind: 'buff', names: ['방어력 무시 대미지'], directions: ['▲'] },
+  { label: '저지 부위 공격 대미지', kind: 'buff', names: ['저지 부위 공격 대미지', '저지부위 공격 대미지'], directions: ['▲'] },
+  { label: '파츠 대미지', kind: 'buff', names: ['파츠 대미지'], directions: ['▲'] },
+  { label: '관통 대미지', kind: 'buff', names: ['관통 대미지'], directions: ['▲'] },
+  { label: '차지 대미지', kind: 'buff', names: ['차지 대미지'], directions: ['▲'] },
+  { label: '공격 대미지', kind: 'buff', names: ['공격 대미지'], directions: ['▲'] },
+  { label: '분배 대미지', kind: 'buff', names: ['분배 대미지'], directions: ['▲'] },
+  { label: '크리티컬 확률', kind: 'buff', names: ['크리티컬 확률'], directions: ['▲'] },
+  { label: '크리티컬 대미지', kind: 'buff', names: ['크리티컬 대미지'], directions: ['▲'] },
+  { label: '지속 대미지', kind: 'buff', names: ['지속 대미지'], directions: ['▲'] },
+  { label: '공격력', kind: 'buff', names: ['공격력'], directions: ['▲'] },
+  { label: '공격력 감소', kind: 'debuff', names: ['공격력'], directions: ['▼'] },
+  { label: '받는 대미지', kind: 'debuff', names: ['받는 대미지'], directions: ['▲'] },
+];
+
+const normalizeEffectName = (name) => name.replace(/\s+/g, ' ').trim();
+
+const normalizeEffectDirection = (direction) => {
+  const text = String(direction || '');
+  if (text.includes('회복')) return '회복';
+  if (text.includes('충전')) return '충전';
+  if (text.includes('보호막')) return '보호막';
+  return text;
+};
+
+const findEffectRule = (name, direction) => {
+  const normalizedName = normalizeEffectName(name);
+  const normalizedDirection = normalizeEffectDirection(direction);
+  if (normalizedDirection === '회복') {
+    return effectRules.find((rule) => rule.label === '체력 회복');
+  }
+  if (normalizedDirection === '보호막') {
+    return effectRules.find((rule) => rule.label === '보호막');
+  }
+
+  return effectRules.find(
+    (rule) =>
+      rule.names.some((candidate) => {
+        const normalizedCandidate = normalizeEffectName(candidate);
+        return normalizedName === normalizedCandidate || normalizedName.endsWith(`: ${normalizedCandidate}`) || normalizedName.endsWith(normalizedCandidate);
+      }) &&
+      (!rule.directions.length || rule.directions.includes(normalizedDirection)),
+  );
+};
+
+const getSegmentTarget = (textBeforeEffect, kind, sourceName, effectTail = '') => {
+  if (kind === 'debuff') {
+    return '적';
+  }
+
+  if (String(effectTail).includes('아군')) {
+    return '아군';
+  }
+
+  const context = textBeforeEffect.slice(-120);
+  const allyIndex = Math.max(context.lastIndexOf('아군'), context.lastIndexOf('전체에게'));
+  const selfIndex = Math.max(context.lastIndexOf('자신에게'), context.lastIndexOf('자신을'));
+  if (selfIndex > allyIndex) {
+    return sourceName;
+  }
+
+  return '아군';
+};
+
+const parseEffectNumber = (value) => Number.parseFloat(String(value || '').replace(/[^\d.]/g, '')) || 0;
+
+const displayNikkeName = (nikke) => `${nikke.favoriteItemAvailable ? '★ ' : ''}${nikke.name}`;
+
+const inferEffectsFromSkillText = (nikke) => {
+  const detected = new Map();
+
+  skillTextFields.forEach((field) => {
+    const text = nikke[field.name] || '';
+    text
+      .split('■')
+      .map((segment) => segment.trim())
+      .filter(Boolean)
+      .forEach((segment) => {
+        const bracketPattern = /\[([^\]\d]+?)\s+(\d+(?:\.\d+)?)(%|초|발)\s*([▲▼])\]/gu;
+        const resultPattern = /\[([^\]\d]+?)\s+(\d+(?:\.\d+)?)(%|초|발)\s*([^\]]*(?:회복|충전|보호막))\]/gu;
+        const durationPattern = /\[(\d+(?:\.\d+)?초 유지)\]/u;
+        const matches = [...segment.matchAll(bracketPattern), ...segment.matchAll(resultPattern)].sort((a, b) => (a.index || 0) - (b.index || 0));
+
+        matches.forEach((match) => {
+          const [, rawName, amount, unit, direction] = match;
+          const rule = findEffectRule(rawName, direction);
+          if (!rule) {
+            return;
+          }
+
+          const textBeforeEffect = segment.slice(0, match.index || 0);
+          const kind = rule.kind;
+          const target = getSegmentTarget(textBeforeEffect, kind, nikke.name, direction);
+          if (target === nikke.name) {
+            return;
+          }
+
+          const textAfterEffect = segment.slice((match.index || 0) + match[0].length);
+          const duration = textAfterEffect.match(durationPattern)?.[1] || '';
+          const value = `${amount}${unit}`;
+          detected.set(`${kind}-${rule.label}-${value}-${target}-${duration}`, {
+            label: rule.label,
+            kind,
+            source: nikke.name,
+            target,
+            value,
+            duration,
+          });
+        });
+      });
+  });
+
+  return [...detected.values()];
+};
+
+const analyzeSquadEffects = (squad) => {
+  const effects = {
+    buff: new Map(),
+    debuff: new Map(),
+    utility: new Map(),
+  };
+  const addEffect = (effect) => {
+    const key = `${effect.kind}-${effect.source}-${effect.label}`;
+    const group = effects[effect.kind];
+    if (!group) {
+      return;
+    }
+
+    const savedEffect = group.get(key);
+    if (!savedEffect || parseEffectNumber(effect.value) > parseEffectNumber(savedEffect.value)) {
+      group.set(key, effect);
+    }
+  };
+
+  squad.forEach((nikke) => {
+    inferEffectsFromSkillText(nikke).forEach((effect) => {
+      addEffect(effect);
+    });
+
+    (nikke.buffEffects || []).forEach((effect) => {
+      const type = effectTypeMap[effect.type];
+      if (
+        !type ||
+        ![
+          'attackUp',
+          'attackDown',
+          'critRateUp',
+          'critDamageUp',
+          'attackDamageUp',
+          'ignoreDefenseDamageUp',
+          'dotDamageUp',
+          'elementDamageUp',
+          'distributedDamageUp',
+          'interruptionPartDamageUp',
+          'partsDamageUp',
+          'pierceDamageUp',
+          'chargeDamageUp',
+          'damageTakenUp',
+          'accuracyUp',
+          'defenseUp',
+          'defenseDown',
+          'chargeSpeedUp',
+          'attackSpeedUp',
+          'reloadSpeedUp',
+          'heal',
+          'barrier',
+          'maxAmmoUp',
+          'ammoCharge',
+          'burstCooldownDown',
+        ].includes(effect.type)
+      ) {
+        return;
+      }
+
+      const kind = type.kind === 'utility' ? 'utility' : type.kind === 'debuff' ? 'debuff' : effect.target === 'self' ? 'self' : 'buff';
+      if (kind === 'self') {
+        return;
+      }
+      addEffect({
+        label: type.label,
+        kind,
+        source: nikke.name,
+        target: kind === 'debuff' ? '적' : kind === 'self' ? nikke.name : '아군',
+        value: effect.value ? `${effect.value}%` : '',
+      });
+    });
+  });
+
+  return {
+    buff: [...effects.buff.values()],
+    debuff: [...effects.debuff.values()],
+    utility: [...effects.utility.values()],
+  };
+};
 
 const requestJson = async (path, options = {}) => {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -161,6 +445,7 @@ const matchesNikkeKeyword = (nikke, keyword) => {
     nikke.classType,
     nikke.code,
     nikke.weapon,
+    nikke.favoriteItemAvailable ? '애장품' : '',
     nikke.burst,
     nikke.squadRole,
     nikke.skill1,
@@ -172,12 +457,6 @@ const matchesNikkeKeyword = (nikke, keyword) => {
     .toLowerCase()
     .includes(keyword);
 };
-
-const createBuffBucket = () => ({
-  total: 0,
-  percentTotal: 0,
-  sources: [],
-});
 
 const createEmptyEffect = () => ({
   id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
@@ -192,14 +471,15 @@ function App() {
   const [nikkes, setNikkes] = useState([]);
   const [form, setForm] = useState(createEmptyForm);
   const [editingId, setEditingId] = useState(null);
-  const [squadIds, setSquadIds] = useState([]);
-  const [screen, setScreen] = useState('squad');
+  const [squadCategories, setSquadCategories] = useState(createEmptySquadCategories);
+  const [activeCategory, setActiveCategory] = useState(squadCategoryDefs[0].key);
+  const [activeSquadIndex, setActiveSquadIndex] = useState(0);
   const [query, setQuery] = useState('');
   const [queryInput, setQueryInput] = useState('');
-  const [selectedRarities, setSelectedRarities] = useState([]);
   const [selectedManufacturers, setSelectedManufacturers] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState([]);
   const [selectedBursts, setSelectedBursts] = useState([]);
+  const [selectedWeapons, setSelectedWeapons] = useState([]);
   const [manageQuery, setManageQuery] = useState('');
   const [draggingId, setDraggingId] = useState(null);
   const [dragOverSlot, setDragOverSlot] = useState(null);
@@ -216,13 +496,13 @@ function App() {
     const loadNikkes = async () => {
       try {
         setLoading(true);
-        const [loadedNikkes, loadedSquadIds] = await Promise.all([requestJson('/nikkes'), requestJson('/squad')]);
+        const [loadedNikkes, loadedSquadCategories] = await Promise.all([requestJson('/nikkes'), requestJson('/squad')]);
         setNikkes(loadedNikkes);
-        setSquadIds(loadedSquadIds);
+        setSquadCategories(normalizeSquadCategories(loadedSquadCategories));
         setApiError('');
       } catch (error) {
         setNikkes(initialNikkes);
-        setSquadIds([1, 2, 3, 4]);
+        setSquadCategories(setSquadIdsInCategories(createEmptySquadCategories(), 'soloRaid', 0, [1, 2, 3, 4]));
         setApiError(error.message);
       } finally {
         setLoading(false);
@@ -232,116 +512,34 @@ function App() {
     loadNikkes();
   }, []);
 
-  const squad = useMemo(
-    () => squadIds.map((id) => nikkes.find((nikke) => nikke.id === id)).filter(Boolean),
-    [nikkes, squadIds],
-  );
+  const activeCategoryDef = squadCategoryDefs.find((category) => category.key === activeCategory) || squadCategoryDefs[0];
+  const categorySquads = squadCategories[activeCategory] || [];
+  const squadIds = categorySquads[activeSquadIndex] || [];
+  const categoryUsedIds = useMemo(() => new Set(categorySquads.flat()), [categorySquads]);
+  const squad = useMemo(() => squadIds.map((id) => nikkes.find((nikke) => nikke.id === id)).filter(Boolean), [nikkes, squadIds]);
 
   const filteredNikkes = useMemo(() => {
     const keyword = query.trim().toLowerCase();
 
     return nikkes.filter((nikke) => {
-      const matchesRarity = !selectedRarities.length || selectedRarities.includes(nikke.rarity);
+      const matchesRarity = nikke.rarity === 'SSR';
       const matchesManufacturer = !selectedManufacturers.length || selectedManufacturers.includes(nikke.manufacturer);
       const matchesCode = !selectedCodes.length || selectedCodes.includes(nikke.code);
       const matchesBurst = !selectedBursts.length || selectedBursts.includes(nikke.burst);
+      const matchesWeapon = !selectedWeapons.length || selectedWeapons.includes(nikke.weapon);
 
-      return matchesRarity && matchesManufacturer && matchesCode && matchesBurst && matchesNikkeKeyword(nikke, keyword);
+      return matchesRarity && matchesManufacturer && matchesCode && matchesBurst && matchesWeapon && matchesNikkeKeyword(nikke, keyword);
     });
-  }, [nikkes, query, selectedBursts, selectedCodes, selectedManufacturers, selectedRarities]);
+  }, [nikkes, query, selectedBursts, selectedCodes, selectedManufacturers, selectedWeapons]);
 
   const filteredManagedNikkes = useMemo(() => {
     const keyword = manageQuery.trim().toLowerCase();
     return nikkes.filter((nikke) => matchesNikkeKeyword(nikke, keyword));
   }, [manageQuery, nikkes]);
 
-  const squadAnalysis = useMemo(() => {
-    const burstCounts = bursts.reduce((counts, burst) => {
-      counts[burst] = squad.filter((nikke) => nikke.burst === burst).length;
-      return counts;
-    }, {});
-
-    const classCounts = classes.reduce((counts, classType) => {
-      counts[classType] = squad.filter((nikke) => nikke.classType === classType).length;
-      return counts;
-    }, {});
-
-    const checks = [
-      { label: '5명 편성', passed: squad.length === 5 },
-      { label: '버스트 I 포함', passed: burstCounts['버스트 I'] > 0 },
-      { label: '버스트 II 포함', passed: burstCounts['버스트 II'] > 0 },
-      { label: '버스트 III 포함', passed: burstCounts['버스트 III'] > 0 },
-      { label: '화력형 2명 이상', passed: classCounts['화력형'] >= 2 },
-      { label: '지원형 또는 방어형 포함', passed: classCounts['지원형'] + classCounts['방어형'] > 0 },
-    ];
-
-    return { burstCounts, classCounts, checks };
-  }, [squad]);
-
-  const squadBuffAnalysis = useMemo(() => {
-    const summary = {
-      ally: {},
-      self: {},
-      debuff: {},
-      allyTotal: 0,
-      selfTotal: 0,
-      debuffTotal: 0,
-    };
-
-    buffEffectTypes.forEach((type) => {
-      const bucket = { ...createBuffBucket(), label: type.label };
-      if (type.kind === 'debuff') {
-        summary.debuff[type.key] = bucket;
-        return;
-      }
-
-      summary.ally[type.key] = { ...bucket };
-      summary.self[type.key] = { ...bucket };
-    });
-
-    squad.forEach((nikke) => {
-      (nikke.buffEffects || []).forEach((effect) => {
-        const type = effectTypeMap[effect.type];
-        if (!type) {
-          return;
-        }
-
-        const group = type.kind === 'debuff' ? 'debuff' : effect.target === 'self' ? 'self' : 'ally';
-        const bucket = summary[group][type.key];
-        if (!bucket) {
-          return;
-        }
-
-        const value = Number.parseFloat(effect.value) || 0;
-        bucket.total += 1;
-        bucket.percentTotal += value;
-        bucket.sources.push({
-          source: `${nikke.name} · ${effect.skill || '스킬'}`,
-          text: `${type.label} ${value || 0}%${effect.note ? ` · ${effect.note}` : ''}`,
-          percentTotal: value,
-        });
-
-        if (group === 'ally') {
-          summary.allyTotal += 1;
-        } else if (group === 'self') {
-          summary.selfTotal += 1;
-        } else {
-          summary.debuffTotal += 1;
-        }
-      });
-    });
-
-    return {
-      ...summary,
-      allyEntries: Object.values(summary.ally).filter((entry) => entry.total > 0),
-      selfEntries: Object.values(summary.self).filter((entry) => entry.total > 0),
-      debuffEntries: Object.values(summary.debuff).filter((entry) => entry.total > 0),
-    };
-  }, [squad]);
-
   const updateForm = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { checked, name, type, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const toggleFilterValue = (setter, value) => {
@@ -351,10 +549,10 @@ function App() {
   const clearRosterFilters = () => {
     setQuery('');
     setQueryInput('');
-    setSelectedRarities([]);
     setSelectedManufacturers([]);
     setSelectedCodes([]);
     setSelectedBursts([]);
+    setSelectedWeapons([]);
   };
 
   const searchRoster = (event) => {
@@ -383,6 +581,7 @@ function App() {
       burst: form.burst,
       code: form.code,
       weapon: form.weapon,
+      favoriteItemAvailable: Boolean(form.favoriteItemAvailable),
       squadRole: form.squadRole.trim(),
       skill1: form.skill1.trim(),
       skill2: form.skill2.trim(),
@@ -427,7 +626,6 @@ function App() {
   };
 
   const editNikke = (nikke) => {
-    setScreen('manage');
     setEditingId(nikke.id);
     setImageUploadMessage('');
     setForm({
@@ -438,6 +636,7 @@ function App() {
       burst: nikke.burst,
       code: nikke.code,
       weapon: nikke.weapon,
+      favoriteItemAvailable: Boolean(nikke.favoriteItemAvailable),
       squadRole: nikke.squadRole,
       skill1: nikke.skill1 || '',
       skill2: nikke.skill2 || '',
@@ -507,15 +706,17 @@ function App() {
     }
   };
 
-  const saveSquadIds = async (nextIds) => {
-    setSquadIds(nextIds);
+  const saveSquadIds = async (nextIds, squadIndex = activeSquadIndex) => {
+    const nextCategories = setSquadIdsInCategories(squadCategories, activeCategory, squadIndex, nextIds);
+    setSquadCategories(nextCategories);
+    setActiveSquadIndex(squadIndex);
 
     try {
-      const savedIds = await requestJson('/squad', {
+      const savedCategories = await requestJson('/squad', {
         method: 'PUT',
-        body: JSON.stringify({ ids: nextIds }),
+        body: JSON.stringify({ categories: nextCategories }),
       });
-      setSquadIds(savedIds);
+      setSquadCategories(normalizeSquadCategories(savedCategories));
       setApiError('');
     } catch (error) {
       setApiError(error.message);
@@ -526,7 +727,9 @@ function App() {
     try {
       await requestJson(`/nikkes/${id}`, { method: 'DELETE' });
       setNikkes((prev) => prev.filter((nikke) => nikke.id !== id));
-      setSquadIds((prev) => prev.filter((squadId) => squadId !== id));
+      setSquadCategories((prev) =>
+        Object.fromEntries(Object.entries(prev).map(([category, squads]) => [category, squads.map((ids) => ids.filter((squadId) => squadId !== id))])),
+      );
       setApiError('');
     } catch (error) {
       setApiError(error.message);
@@ -537,29 +740,32 @@ function App() {
     }
   };
 
-  const addToSquad = (id) => {
-    if (squadIds.includes(id) || squadIds.length >= 5) {
+  const addToSquad = (id, squadIndex = activeSquadIndex) => {
+    const targetIds = categorySquads[squadIndex] || [];
+    if (targetIds.includes(id) || categoryUsedIds.has(id) || targetIds.length >= 5) {
       return;
     }
 
-    saveSquadIds([...squadIds, id]);
+    saveSquadIds([...targetIds, id], squadIndex);
   };
 
-  const placeInSquad = (id, slotIndex) => {
-    const withoutDragged = squadIds.filter((squadId) => squadId !== id);
+  const placeInSquad = (id, slotIndex, squadIndex = activeSquadIndex) => {
+    const targetIds = categorySquads[squadIndex] || [];
+    const withoutDragged = targetIds.filter((squadId) => squadId !== id);
 
     if (slotIndex >= withoutDragged.length) {
-      saveSquadIds([...withoutDragged, id].slice(0, 5));
+      saveSquadIds([...withoutDragged, id].slice(0, 5), squadIndex);
       return;
     }
 
     const next = [...withoutDragged];
     next.splice(slotIndex, 0, id);
-    saveSquadIds(next.slice(0, 5));
+    saveSquadIds(next.slice(0, 5), squadIndex);
   };
 
-  const removeFromSquad = (id) => {
-    saveSquadIds(squadIds.filter((squadId) => squadId !== id));
+  const removeFromSquad = (id, squadIndex = activeSquadIndex) => {
+    const targetIds = categorySquads[squadIndex] || [];
+    saveSquadIds(targetIds.filter((squadId) => squadId !== id), squadIndex);
   };
 
   const clearSquad = () => saveSquadIds([]);
@@ -579,15 +785,15 @@ function App() {
     }
   };
 
-  const importDildoroData = async () => {
+  const importNikkeData = async () => {
     try {
       setImportingDildoro(true);
       setImportMessage('');
-      const result = await requestJson('/import/dildoro', { method: 'POST' });
+      const result = await requestJson('/import/nikke', { method: 'POST' });
       setNikkes(result.nikkes);
       setApiError('');
       setImportMessage(
-        `Dildoro SSR ${result.total}명 적용 완료: 신규 ${result.created}명, 업데이트 ${result.updated}명, 제외 ${result.skipped}명`,
+        `NIKKE SSR ${result.total}명 적용 완료: 신규 ${result.created}명, 업데이트 ${result.updated}명, 제외 ${result.skipped}명`,
       );
     } catch (error) {
       setApiError(error.message);
@@ -603,24 +809,25 @@ function App() {
     setDraggingId(id);
   };
 
-  const dropOnSlot = (event, slotIndex) => {
+  const dropOnSlot = (event, slotIndex, squadIndex = activeSquadIndex) => {
     event.preventDefault();
     const droppedId = Number(
       event.dataTransfer.getData('application/x-nikke-id') || event.dataTransfer.getData('text/plain') || draggingId,
     );
+    const targetIds = categorySquads[squadIndex] || [];
 
-    if (droppedId && nikkes.some((nikke) => nikke.id === droppedId)) {
-      placeInSquad(droppedId, slotIndex);
+    if (droppedId && nikkes.some((nikke) => nikke.id === droppedId) && (targetIds.includes(droppedId) || !categoryUsedIds.has(droppedId))) {
+      placeInSquad(droppedId, slotIndex, squadIndex);
     }
 
     setDraggingId(null);
     setDragOverSlot(null);
   };
 
-  const handleSlotDragOver = (event, slotIndex) => {
+  const handleSlotDragOver = (event, slotIndex, squadIndex = activeSquadIndex) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
-    setDragOverSlot(slotIndex);
+    setDragOverSlot(`${squadIndex}-${slotIndex}`);
   };
 
   const toggleSquadSelection = (id) => {
@@ -653,7 +860,13 @@ function App() {
 
   const renderSkillTooltip = (nikke, className = 'skillTooltip') => (
     <div className={className} role="tooltip">
-      <strong>{nikke.name}</strong>
+      <strong>{displayNikkeName(nikke)}</strong>
+      {nikke.favoriteItemAvailable && (
+        <p>
+          <span>애장품</span>
+          전용 애장품 가능
+        </p>
+      )}
       {skillTextFields.some((field) => nikke[field.name]) ? (
         skillTextFields.map((field) =>
           nikke[field.name] ? (
@@ -672,14 +885,14 @@ function App() {
     </div>
   );
 
-  const renderNikkeImage = (nikke, className = 'portrait', imageSource = nikke.fullImageUrl || nikke.imageUrl) => (
+  const renderNikkeImage = (nikke, className = 'portrait', imageSource = nikke.fullImageUrl || nikke.imageUrl, showSkillTooltip = true) => (
     <div
-      className={`imageTooltipWrap ${className === 'tileImage' ? 'faceImageWrap' : ''}`}
-      onMouseEnter={(event) => showTooltip(event, nikke)}
-      onMouseMove={(event) => showTooltip(event, nikke)}
-      onMouseLeave={hideTooltip}
-      onFocus={(event) => showTooltip(event, nikke)}
-      onBlur={hideTooltip}
+      className={`imageTooltipWrap ${className === 'tileImage' || className === 'slotImage' ? 'faceImageWrap' : ''}`}
+      onMouseEnter={showSkillTooltip ? (event) => showTooltip(event, nikke) : undefined}
+      onMouseMove={showSkillTooltip ? (event) => showTooltip(event, nikke) : undefined}
+      onMouseLeave={showSkillTooltip ? hideTooltip : undefined}
+      onFocus={showSkillTooltip ? (event) => showTooltip(event, nikke) : undefined}
+      onBlur={showSkillTooltip ? hideTooltip : undefined}
     >
       <img
         className={className}
@@ -687,10 +900,10 @@ function App() {
         onDragStart={(event) => startDrag(event, nikke.id)}
         onDragEnd={() => setDraggingId(null)}
         src={imageSource || nikke.faceImageUrl || 'https://placehold.co/360x240?text=NIKKE'}
-        alt={`${nikke.name} 이미지`}
+        alt={`${displayNikkeName(nikke)} 이미지`}
       />
       <div className="imageInfoOverlay" aria-hidden="true">
-        <strong>{nikke.name}</strong>
+        <strong>{displayNikkeName(nikke)}</strong>
         <span>
           {nikke.rarity} · {nikke.burst}
         </span>
@@ -706,9 +919,14 @@ function App() {
 
   const renderNikkeCard = (nikke, mode = 'manage') => {
     const selected = squadIds.includes(nikke.id);
+    const unavailable = mode === 'squad' && !selected && categoryUsedIds.has(nikke.id);
     const cardDragProps = {
-      draggable: true,
-      onDragStart: (event) => startDrag(event, nikke.id),
+      draggable: !unavailable,
+      onDragStart: (event) => {
+        if (!unavailable) {
+          startDrag(event, nikke.id);
+        }
+      },
       onDragEnd: () => {
         setDraggingId(null);
         setDragOverSlot(null);
@@ -719,12 +937,18 @@ function App() {
       return (
         <li
           key={nikke.id}
-          className={`nikkeTile ${selected ? 'selected' : ''} ${draggingId === nikke.id ? 'dragging' : ''}`}
-          aria-label={`${nikke.name} 편성 후보`}
-          onClick={() => toggleSquadSelection(nikke.id)}
+          className={`nikkeTile ${selected ? 'selected' : ''} ${unavailable ? 'unavailable' : ''} ${draggingId === nikke.id ? 'dragging' : ''}`}
+          aria-label={`${displayNikkeName(nikke)} 편성 후보`}
+          onClick={() => {
+            if (!unavailable) {
+              toggleSquadSelection(nikke.id);
+            }
+          }}
           {...cardDragProps}
         >
-          {renderNikkeImage(nikke, 'tileImage', nikke.faceImageUrl || nikke.imageUrl || nikke.fullImageUrl)}
+          {renderNikkeImage(nikke, 'tileImage', nikke.faceImageUrl || nikke.imageUrl || nikke.fullImageUrl, false)}
+          {nikke.favoriteItemAvailable && <span className="tileFavoriteBadge">애장품</span>}
+          {unavailable && <span className="tileUnavailableBadge">다른 편성</span>}
         </li>
       );
     }
@@ -738,9 +962,10 @@ function App() {
         {renderNikkeImage(nikke)}
         <div className="cardBody">
           <div className="titleRow">
-            <strong>{nikke.name}</strong>
+            <strong>{displayNikkeName(nikke)}</strong>
             <span className="badge rarity">{nikke.rarity}</span>
             <span className="badge">{nikke.burst}</span>
+            {nikke.favoriteItemAvailable && <span className="badge favorite">애장품</span>}
           </div>
           <p>
             {nikke.manufacturer} · {nikke.classType} · {nikke.code} · {nikke.weapon}
@@ -794,165 +1019,156 @@ function App() {
         </div>
       </header>
 
-      <nav className="screenTabs" aria-label="화면 전환">
-        <button type="button" className={`tab ${screen === 'squad' ? 'active' : ''}`} onClick={() => setScreen('squad')}>
-          스쿼드 구성
-        </button>
-        <button type="button" className={`tab ${screen === 'manage' ? 'active' : ''}`} onClick={() => setScreen('manage')}>
-          니케 관리
-        </button>
-      </nav>
-
       {(loading || apiError) && (
         <div className={`apiStatus ${apiError ? 'error' : ''}`}>
           {loading ? 'DB에서 니케 정보를 불러오는 중입니다.' : `API 오류: ${apiError}`}
         </div>
       )}
 
-      {screen === 'squad' ? (
-        <div className="squadWorkspace">
+      <div className="squadWorkspace">
           <section className="panel squadPanel">
             <div className="sectionHeader">
               <div>
-                <h2>현재 스쿼드</h2>
+                <h2>{activeCategoryDef.label}</h2>
+                <p>{activeSquadIndex + 1}편성 · {squad.length}/5명</p>
               </div>
               <button type="button" className="button ghost" onClick={clearSquad} disabled={!squad.length}>
-                스쿼드 비우기
+                현재 편성 비우기
               </button>
             </div>
 
-            <div className="squadSlots">
-              {Array.from({ length: 5 }).map((_, index) => {
-                const nikke = squad[index];
-
+            <div className="categoryTabs" aria-label="콘텐츠 선택">
+              {squadCategoryDefs.map((category) => {
+                const filledCount = (squadCategories[category.key] || []).filter((ids) => ids.length > 0).length;
                 return (
-                  <div
-                    key={nikke?.id || `empty-${index}`}
-                    className={`slot ${nikke ? 'filled' : ''} ${dragOverSlot === index ? 'dragOver' : ''}`}
-                    onDragOver={(event) => handleSlotDragOver(event, index)}
-                    onDragEnter={() => setDragOverSlot(index)}
-                    onDragLeave={() => setDragOverSlot(null)}
-                    onDrop={(event) => dropOnSlot(event, index)}
+                  <button
+                    key={category.key}
+                    type="button"
+                    className={`categoryTab ${activeCategory === category.key ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveCategory(category.key);
+                      setActiveSquadIndex(0);
+                      setDragOverSlot(null);
+                    }}
                   >
-                    {nikke ? (
-                      <>
-                        {renderNikkeImage(nikke, 'slotImage')}
-                        <button type="button" onClick={() => removeFromSquad(nikke.id)}>
-                          제거
-                        </button>
-                      </>
-                    ) : (
-                      <span>
-                        여기로 드롭
-                        <br />
-                        빈 슬롯 {index + 1}
-                      </span>
-                    )}
-                  </div>
+                    {category.label}
+                    <span>
+                      {filledCount}/{category.squadCount}
+                    </span>
+                  </button>
                 );
               })}
             </div>
 
-            <div className="analysisGrid">
-              <div>
-                <h3>버스트 분포</h3>
-                {bursts.map((burst) => (
-                  <p key={burst}>
-                    {burst}: {squadAnalysis.burstCounts[burst]}명
-                  </p>
-                ))}
-              </div>
-              <div>
-                <h3>병과 분포</h3>
-                {classes.map((classType) => (
-                  <p key={classType}>
-                    {classType}: {squadAnalysis.classCounts[classType]}명
-                  </p>
-                ))}
-              </div>
-              <div>
-                <h3>구성 체크</h3>
-                {squadAnalysis.checks.map((check) => (
-                  <p key={check.label} className={check.passed ? 'passed' : 'failed'}>
-                    {check.passed ? '✓' : '•'} {check.label}
-                  </p>
-                ))}
-              </div>
-            </div>
+            <div className="squadStack">
+              {categorySquads.map((ids, squadIndex) => {
+                const squadNikkes = ids.map((id) => nikkes.find((nikke) => nikke.id === id)).filter(Boolean);
+                const compositionChecks = analyzeSquadComposition(squadNikkes);
+                const effectChecks = analyzeSquadEffects(squadNikkes);
+                const isActiveSquad = activeSquadIndex === squadIndex;
 
-            <div className="buffSummary">
-              <div className="buffHeader">
-                <h3>버프 총합</h3>
-                <span>
-                  아군 {squadBuffAnalysis.allyTotal}개 · 자기 {squadBuffAnalysis.selfTotal}개 · 디버프{' '}
-                  {squadBuffAnalysis.debuffTotal}개
-                </span>
-              </div>
-              <div className="buffColumns">
-                <div>
-                  <strong>아군 버프</strong>
-                  {squadBuffAnalysis.allyEntries.length ? (
-                    squadBuffAnalysis.allyEntries.map((entry) => (
-                      <details key={`ally-${entry.label}`} className="buffItem">
-                        <summary>
-                          {entry.label}
-                          <span>{entry.percentTotal ? `${entry.percentTotal}% / ${entry.total}개` : `${entry.total}개`}</span>
-                        </summary>
-                        {entry.sources.map((source, index) => (
-                          <p key={`${source.source}-${index}`}>
-                            <b>{source.source}</b>
-                            {source.text}
-                          </p>
-                        ))}
-                      </details>
-                    ))
-                  ) : (
-                    <p className="emptyBuff">아군 대상 버프 효과가 없습니다.</p>
-                  )}
-                </div>
-                <div>
-                  <strong>자기 강화</strong>
-                  {squadBuffAnalysis.selfEntries.length ? (
-                    squadBuffAnalysis.selfEntries.map((entry) => (
-                      <details key={`self-${entry.label}`} className="buffItem">
-                        <summary>
-                          {entry.label}
-                          <span>{entry.percentTotal ? `${entry.percentTotal}% / ${entry.total}개` : `${entry.total}개`}</span>
-                        </summary>
-                        {entry.sources.map((source, index) => (
-                          <p key={`${source.source}-${index}`}>
-                            <b>{source.source}</b>
-                            {source.text}
-                          </p>
-                        ))}
-                      </details>
-                    ))
-                  ) : (
-                    <p className="emptyBuff">자기 강화 효과가 없습니다.</p>
-                  )}
-                </div>
-                <div>
-                  <strong>적 디버프</strong>
-                  {squadBuffAnalysis.debuffEntries.length ? (
-                    squadBuffAnalysis.debuffEntries.map((entry) => (
-                      <details key={`debuff-${entry.label}`} className="buffItem">
-                        <summary>
-                          {entry.label}
-                          <span>{entry.percentTotal ? `${entry.percentTotal}% / ${entry.total}개` : `${entry.total}개`}</span>
-                        </summary>
-                        {entry.sources.map((source, index) => (
-                          <p key={`${source.source}-${index}`}>
-                            <b>{source.source}</b>
-                            {source.text}
-                          </p>
-                        ))}
-                      </details>
-                    ))
-                  ) : (
-                    <p className="emptyBuff">적 대상 디버프 효과가 없습니다.</p>
-                  )}
-                </div>
-              </div>
+                return (
+                  <section
+                    key={`${activeCategory}-${squadIndex}`}
+                    className={`squadBlock ${isActiveSquad ? 'active' : ''}`}
+                    onClick={() => setActiveSquadIndex(squadIndex)}
+                  >
+                    <div className="squadBlockHeader">
+                      <h3>{squadIndex + 1}편성</h3>
+                      <button
+                        type="button"
+                        className="button ghost small"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          saveSquadIds([], squadIndex);
+                        }}
+                        disabled={!squadNikkes.length}
+                      >
+                        비우기
+                      </button>
+                    </div>
+
+                    <div className="squadSlots compact">
+                      {Array.from({ length: 5 }).map((_, slotIndex) => {
+                        const nikke = squadNikkes[slotIndex];
+                        const slotKey = `${squadIndex}-${slotIndex}`;
+
+                        return (
+                          <div
+                            key={nikke?.id || `empty-${squadIndex}-${slotIndex}`}
+                            className={`slot ${nikke ? 'filled' : ''} ${dragOverSlot === slotKey ? 'dragOver' : ''}`}
+                            onDragOver={(event) => handleSlotDragOver(event, slotIndex, squadIndex)}
+                            onDragEnter={() => setDragOverSlot(slotKey)}
+                            onDragLeave={() => setDragOverSlot(null)}
+                            onDrop={(event) => dropOnSlot(event, slotIndex, squadIndex)}
+                          >
+                            {nikke ? (
+                              <>
+                                {renderNikkeImage(nikke, 'slotImage', nikke.faceImageUrl || nikke.imageUrl || nikke.fullImageUrl)}
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    removeFromSquad(nikke.id, squadIndex);
+                                  }}
+                                >
+                                  제거
+                                </button>
+                              </>
+                            ) : (
+                              <span>빈 슬롯 {slotIndex + 1}</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <details className="squadAnalysisDetails" defaultOpen={isActiveSquad}>
+                      <summary>구성/효과 체크</summary>
+                      <div className="squadAnalysisBody">
+                        <div className="compositionCheck">
+                          <h3>구성 체크</h3>
+                          <div className="checkList">
+                            {compositionChecks.map((check) => (
+                              <span key={check.label} className={check.passed ? 'passed' : 'failed'}>
+                                {check.passed ? '✓' : '•'} {check.label}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="effectCheckGrid">
+                          {[
+                            ['버프 체크', effectChecks.buff, 'buffEffect'],
+                            ['디버프 체크', effectChecks.debuff, 'debuffEffect'],
+                            ['유틸리티 체크', effectChecks.utility, 'utilityEffect'],
+                          ].map(([title, effects, className]) => (
+                            <div key={title} className="compositionCheck effectCheck">
+                              <h3>{title}</h3>
+                              <div className="checkList effectList">
+                                {effects.length ? (
+                                  effects.map((effect) => (
+                                    <span
+                                      key={`${effect.kind}-${effect.target}-${effect.label}-${effect.value}-${effect.duration || ''}-${effect.source}`}
+                                      className={className}
+                                    >
+                                      {effect.label}
+                                      {effect.value ? ` ${effect.value}` : ''}
+                                      {effect.duration ? ` (${effect.duration})` : ''} · {effect.target} · {effect.source}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span>없음</span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </details>
+                  </section>
+                );
+              })}
             </div>
           </section>
 
@@ -976,23 +1192,7 @@ function App() {
                   초기화
                 </button>
               </form>
-              <div className="filterGroup">
-                <span>등급</span>
-                <div className="filterButtons">
-                  {rarities.map((rarity) => (
-                    <button
-                      key={rarity}
-                      type="button"
-                      className={`filterChip ${selectedRarities.includes(rarity) ? 'active' : ''}`}
-                      aria-pressed={selectedRarities.includes(rarity)}
-                      onClick={() => toggleFilterValue(setSelectedRarities, rarity)}
-                    >
-                      {rarity}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="filterGroup">
+              <div className="filterGroup manufacturerFilterGroup">
                 <span>제조사</span>
                 <div className="filterButtons">
                   {manufacturers.map((manufacturer) => (
@@ -1004,6 +1204,22 @@ function App() {
                       onClick={() => toggleFilterValue(setSelectedManufacturers, manufacturer)}
                     >
                       {manufacturer}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="filterGroup">
+                <span>무기</span>
+                <div className="filterButtons">
+                  {weapons.map((weapon) => (
+                    <button
+                      key={weapon}
+                      type="button"
+                      className={`filterChip ${selectedWeapons.includes(weapon) ? 'active' : ''}`}
+                      aria-pressed={selectedWeapons.includes(weapon)}
+                      onClick={() => toggleFilterValue(setSelectedWeapons, weapon)}
+                    >
+                      {weapon}
                     </button>
                   ))}
                 </div>
@@ -1041,219 +1257,10 @@ function App() {
                 </div>
               </div>
             </div>
-            <p className="resultInfo">후보 {filteredNikkes.length}명</p>
+            <p className="resultInfo">미선택 {filteredNikkes.filter((nikke) => !categoryUsedIds.has(nikke.id)).length} 니케</p>
             <ul className="tileList">{filteredNikkes.map((nikke) => renderNikkeCard(nikke, 'squad'))}</ul>
           </section>
         </div>
-      ) : (
-        <>
-          <section className="panel">
-            <h2>{editingId ? '니케 정보 수정' : '니케 등록'}</h2>
-            <form className="form" onSubmit={submitNikke}>
-              <label>
-                니케명
-                <input name="name" value={form.name} onChange={updateForm} placeholder="예: 앨리스" required />
-              </label>
-              <label>
-                등급
-                <select name="rarity" value={form.rarity} onChange={updateForm}>
-                  {rarities.map((rarity) => (
-                    <option key={rarity}>{rarity}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                기업
-                <select name="manufacturer" value={form.manufacturer} onChange={updateForm}>
-                  {manufacturers.map((manufacturer) => (
-                    <option key={manufacturer}>{manufacturer}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                병과
-                <select name="classType" value={form.classType} onChange={updateForm}>
-                  {classes.map((classType) => (
-                    <option key={classType}>{classType}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                버스트
-                <select name="burst" value={form.burst} onChange={updateForm}>
-                  {bursts.map((burst) => (
-                    <option key={burst}>{burst}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                코드
-                <select name="code" value={form.code} onChange={updateForm}>
-                  {codes.map((code) => (
-                    <option key={code}>{code}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                무기
-                <select name="weapon" value={form.weapon} onChange={updateForm}>
-                  {weapons.map((weapon) => (
-                    <option key={weapon}>{weapon}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="full">
-                스쿼드 역할/메모
-                <input
-                  name="squadRole"
-                  value={form.squadRole}
-                  onChange={updateForm}
-                  placeholder="예: 버스트 쿨타임 감소, 메인 딜러, 보호막 지원"
-                  required
-                />
-              </label>
-              <div className="effectEditor full">
-                <div className="effectEditorHeader">
-                  <strong>버프/디버프 효과</strong>
-                  <button type="button" className="button small" onClick={addEffect}>
-                    효과 추가
-                  </button>
-                </div>
-                {form.buffEffects.length ? (
-                  form.buffEffects.map((effect) => {
-                    const selectedType = effectTypeMap[effect.type];
-                    const isDebuff = selectedType?.kind === 'debuff';
-                    return (
-                      <div key={effect.id} className="effectRow">
-                        <label>
-                          스킬
-                          <select value={effect.skill} onChange={(event) => updateEffect(effect.id, 'skill', event.target.value)}>
-                            {skillOptions.map((skill) => (
-                              <option key={skill}>{skill}</option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          대상
-                          <select
-                            value={isDebuff ? 'enemy' : effect.target}
-                            onChange={(event) => updateEffect(effect.id, 'target', event.target.value)}
-                            disabled={isDebuff}
-                          >
-                            {targetOptions.map((target) => (
-                              <option key={target.value} value={target.value}>
-                                {target.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          효과 종류
-                          <select value={effect.type} onChange={(event) => updateEffect(effect.id, 'type', event.target.value)}>
-                            {buffEffectTypes.map((type) => (
-                              <option key={type.key} value={type.key}>
-                                {type.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          수치(%)
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={effect.value}
-                            onChange={(event) => updateEffect(effect.id, 'value', event.target.value)}
-                            placeholder="예: 66"
-                          />
-                        </label>
-                        <label>
-                          메모
-                          <input
-                            value={effect.note || ''}
-                            onChange={(event) => updateEffect(effect.id, 'note', event.target.value)}
-                            placeholder="조건/유지 시간"
-                          />
-                        </label>
-                        <button type="button" className="button danger small effectRemove" onClick={() => removeEffect(effect.id)}>
-                          삭제
-                        </button>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="emptyBuff">입력된 효과가 없습니다. 효과 추가를 눌러 버프/디버프 수치를 등록하세요.</p>
-                )}
-              </div>
-              <details className="skillTextEditor full">
-                <summary>원문 스킬 메모</summary>
-                <div className="skillTextGrid">
-                  {skillTextFields.map((field) => (
-                    <label key={field.name}>
-                      {field.label}
-                      <textarea
-                        name={field.name}
-                        value={form[field.name]}
-                        onChange={updateForm}
-                        placeholder={field.placeholder}
-                        rows={3}
-                      />
-                    </label>
-                  ))}
-                </div>
-              </details>
-              <label className="full">
-                이미지 URL 또는 업로드 경로
-                <input name="imageUrl" value={form.imageUrl} onChange={updateForm} placeholder="https://... 또는 /uploads/name.png" />
-              </label>
-              <div className="imageUpload full">
-                <label>
-                  캐릭터 이미지 파일
-                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={uploadCharacterImage} disabled={uploadingImage} />
-                </label>
-                {form.imageUrl && (
-                  <img className="imagePreview" src={form.imageUrl} alt="업로드 이미지 미리보기" />
-                )}
-                <span>{uploadingImage ? '업로드 중...' : imageUploadMessage || 'JPG, PNG, WebP, GIF 파일을 저장할 수 있습니다.'}</span>
-              </div>
-              <div className="actions full">
-                <button type="submit" className="button primary">
-                  {editingId ? '수정 저장' : '니케 추가'}
-                </button>
-                {editingId && (
-                  <button type="button" className="button ghost" onClick={resetForm}>
-                    수정 취소
-                  </button>
-                )}
-              </div>
-            </form>
-          </section>
-
-          <section className="panel">
-            <div className="sectionHeader">
-              <div>
-                <h2>등록된 니케</h2>
-                <p>검색어는 니케명, 기업, 병과, 코드, 무기, 버스트, 스킬 정보에 적용됩니다.</p>
-              </div>
-              <div className="importActions">
-                <button type="button" className="button" onClick={importDildoroData} disabled={importingDildoro || importingSkills}>
-                  {importingDildoro ? '적용 중...' : 'Dildoro SSR 적용'}
-                </button>
-                <button type="button" className="button ghost" onClick={importSsrSkillsFromNamuWiki} disabled={importingSkills || importingDildoro}>
-                  {importingSkills ? '가져오는 중...' : '나무위키 원문 스킬 가져오기'}
-                </button>
-              </div>
-            </div>
-            {importMessage && <p className="importMessage">{importMessage}</p>}
-            <div className="filters single">
-              <input value={manageQuery} onChange={(event) => setManageQuery(event.target.value)} placeholder="등록된 니케 검색" />
-            </div>
-            <p className="resultInfo">검색 결과 {filteredManagedNikkes.length}명</p>
-            <ul className="cardList">{filteredManagedNikkes.map((nikke) => renderNikkeCard(nikke, 'manage'))}</ul>
-          </section>
-        </>
-      )}
       {tooltip && (
         <div
           className={`floatingTooltip ${tooltip.placement === 'top' ? 'above' : ''}`}
