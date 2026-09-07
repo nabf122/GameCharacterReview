@@ -96,6 +96,7 @@ const createEmptyForm = () => ({
   manufacturer: manufacturers[0],
   classType: classes[0],
   burst: bursts[0],
+  burstCooldown: '',
   code: codes[0],
   weapon: weapons[0],
   favoriteItemAvailable: false,
@@ -143,6 +144,12 @@ const buffEffectTypes = [
 
 const effectTypeMap = Object.fromEntries(buffEffectTypes.map((type) => [type.key, type]));
 const skillOptions = ['1스킬', '2스킬', '버스트'];
+const effectTimingOptions = [
+  { value: 'always', label: '상시' },
+  { value: 'fullBurst', label: '풀 버스트' },
+  { value: 'nonFullBurst', label: '풀 버스트 외' },
+];
+const effectTimingMap = Object.fromEntries(effectTimingOptions.map((timing) => [timing.value, timing]));
 const targetOptions = [
   { value: 'ally', label: '아군' },
   { value: 'self', label: '자신' },
@@ -193,19 +200,20 @@ const analyzeSquadComposition = (squad) => {
     return counts;
   }, {});
 
-  const classCounts = classes.reduce((counts, classType) => {
-    counts[classType] = squad.filter((nikke) => nikke.classType === classType).length;
+  const codeCounts = codes.reduce((counts, code) => {
+    counts[code] = squad.filter((nikke) => nikke.code === code).length;
     return counts;
   }, {});
 
-  return [
-    { label: '5명', passed: squad.length === 5 },
-    { label: '버스트 I', passed: burstCounts['버스트 I'] > 0 },
-    { label: '버스트 II', passed: burstCounts['버스트 II'] > 0 },
-    { label: '버스트 III', passed: burstCounts['버스트 III'] > 0 },
-    { label: '화력 2+', passed: classCounts['화력형'] >= 2 },
-    { label: '지원/방어', passed: classCounts['지원형'] + classCounts['방어형'] > 0 },
-  ];
+  return {
+    checks: [
+      { label: '5명', passed: squad.length === 5 },
+      { label: '버스트 I', passed: burstCounts['버스트 I'] > 0 },
+      { label: '버스트 II', passed: burstCounts['버스트 II'] > 0 },
+      { label: '버스트 III', passed: burstCounts['버스트 III'] > 0 },
+    ],
+    codeCounts: codes.map((code) => ({ label: code, count: codeCounts[code] })),
+  };
 };
 
 const effectRules = [
@@ -291,7 +299,91 @@ const getSegmentTarget = (textBeforeEffect, kind, sourceName, effectTail = '') =
 
 const parseEffectNumber = (value) => Number.parseFloat(String(value || '').replace(/[^\d.]/g, '')) || 0;
 
-const displayNikkeName = (nikke) => `${nikke.favoriteItemAvailable ? '★ ' : ''}${nikke.name}`;
+const displayNikkeName = (nikke) => `${nikke.favoriteItemAvailable ? '💜 ' : ''}${nikke.name}`;
+
+const formatBurstCooldown = (value) => {
+  const cooldown = Number.parseFloat(String(value || '').replace(/[^\d.]/g, ''));
+  return Number.isFinite(cooldown) && cooldown > 0 ? `${Number.isInteger(cooldown) ? cooldown : cooldown}초` : '';
+};
+
+const getSkillFieldLabel = (field, nikke) => {
+  if (field.name !== 'burstSkill') {
+    return field.label;
+  }
+
+  const cooldown = formatBurstCooldown(nikke.burstCooldown);
+  return cooldown ? `${field.label}(${cooldown})` : field.label;
+};
+
+const getSkillDescriptionLength = (nikke) => skillTextFields.reduce((total, field) => total + String(nikke[field.name] || '').length, 0);
+
+const getSkillTooltipDensityClass = (nikke) => {
+  const skillDescriptionLength = getSkillDescriptionLength(nikke);
+
+  if (skillDescriptionLength > 1800) {
+    return ' compressed';
+  }
+
+  if (skillDescriptionLength > 1100) {
+    return ' compact';
+  }
+
+  return '';
+};
+
+const estimateSkillTooltipFontSize = (nikke, tooltipWidth, viewportHeight) => {
+  const columnCount = tooltipWidth >= 720 ? 3 : tooltipWidth >= 500 ? 2 : 1;
+  const availableHeight = viewportHeight - 24;
+  const contentWidth = tooltipWidth / columnCount - 20;
+  const estimatedCharsPerLine = Math.max(14, Math.floor(contentWidth / 6.2));
+  const estimatedLines = skillTextFields.reduce((total, field) => {
+    const text = String(nikke[field.name] || '');
+    if (!text) {
+      return total;
+    }
+
+    return (
+      total +
+      text
+        .split('\n')
+        .map((line) => Math.max(1, Math.ceil(line.length / estimatedCharsPerLine)))
+        .reduce((sum, lineCount) => sum + lineCount, 0)
+    );
+  }, 0);
+  const targetFontSize = (availableHeight - 46) / Math.max(1, estimatedLines) / 1.16;
+
+  return Math.max(7, Math.min(12.8, targetFontSize));
+};
+
+const normalizeEffectTiming = (timing) => (effectTimingMap[timing] ? timing : 'always');
+
+const getEffectTimingLabel = (timing) => effectTimingMap[normalizeEffectTiming(timing)].label;
+
+const groupEffectsByTiming = (effects) =>
+  effectTimingOptions
+    .map((timing) => ({
+      ...timing,
+      effects: effects.filter((effect) => normalizeEffectTiming(effect.timing) === timing.value),
+    }))
+    .filter((group) => group.effects.length);
+
+const inferEffectTiming = (segment) => {
+  if (/풀\s*버스트\s*타임(?:이|가)?\s*(?:아닐|아닌|제외|외|종료|끝)/u.test(segment)) {
+    return 'nonFullBurst';
+  }
+
+  if (/풀\s*버스트\s*타임|풀\s*버스트/u.test(segment)) {
+    return 'fullBurst';
+  }
+
+  if (/\[지속\]|지속/u.test(segment)) {
+    return 'always';
+  }
+
+  return 'always';
+};
+
+const isHealTriggeredEffect = (segment) => /회복\s*효과\s*적용\s*시/u.test(segment);
 
 const inferEffectsFromSkillText = (nikke) => {
   const detected = new Map();
@@ -307,6 +399,8 @@ const inferEffectsFromSkillText = (nikke) => {
         const resultPattern = /\[([^\]\d]+?)\s+(\d+(?:\.\d+)?)(%|초|발)\s*([^\]]*(?:회복|충전|보호막))\]/gu;
         const durationPattern = /\[(\d+(?:\.\d+)?초 유지)\]/u;
         const matches = [...segment.matchAll(bracketPattern), ...segment.matchAll(resultPattern)].sort((a, b) => (a.index || 0) - (b.index || 0));
+        const timing = inferEffectTiming(segment);
+        const healTriggered = isHealTriggeredEffect(segment);
 
         matches.forEach((match) => {
           const [, rawName, amount, unit, direction] = match;
@@ -316,7 +410,7 @@ const inferEffectsFromSkillText = (nikke) => {
           }
 
           const textBeforeEffect = segment.slice(0, match.index || 0);
-          const kind = rule.kind;
+          const kind = healTriggered && rule.kind === 'buff' ? 'utility' : rule.kind;
           const target = getSegmentTarget(textBeforeEffect, kind, nikke.name, direction);
           if (target === nikke.name) {
             return;
@@ -325,13 +419,14 @@ const inferEffectsFromSkillText = (nikke) => {
           const textAfterEffect = segment.slice((match.index || 0) + match[0].length);
           const duration = textAfterEffect.match(durationPattern)?.[1] || '';
           const value = `${amount}${unit}`;
-          detected.set(`${kind}-${rule.label}-${value}-${target}-${duration}`, {
+          detected.set(`${kind}-${rule.label}-${value}-${target}-${duration}-${timing}`, {
             label: rule.label,
             kind,
             source: nikke.name,
             target,
             value,
             duration,
+            timing,
           });
         });
       });
@@ -347,15 +442,17 @@ const analyzeSquadEffects = (squad) => {
     utility: new Map(),
   };
   const addEffect = (effect) => {
-    const key = `${effect.kind}-${effect.source}-${effect.label}`;
+    const timing = normalizeEffectTiming(effect.timing);
+    const key = `${effect.kind}-${effect.source}-${effect.label}-${timing}`;
     const group = effects[effect.kind];
     if (!group) {
       return;
     }
 
+    const normalizedEffect = { ...effect, timing };
     const savedEffect = group.get(key);
-    if (!savedEffect || parseEffectNumber(effect.value) > parseEffectNumber(savedEffect.value)) {
-      group.set(key, effect);
+    if (!savedEffect || parseEffectNumber(normalizedEffect.value) > parseEffectNumber(savedEffect.value)) {
+      group.set(key, normalizedEffect);
     }
   };
 
@@ -409,6 +506,7 @@ const analyzeSquadEffects = (squad) => {
         source: nikke.name,
         target: kind === 'debuff' ? '적' : kind === 'self' ? nikke.name : '아군',
         value: effect.value ? `${effect.value}%` : '',
+        timing: normalizeEffectTiming(effect.timing),
       });
     });
   });
@@ -451,7 +549,9 @@ const matchesNikkeKeyword = (nikke, keyword) => {
     nikke.skill1,
     nikke.skill2,
     nikke.burstSkill,
-    ...(nikke.buffEffects || []).map((effect) => `${effectTypeMap[effect.type]?.label || effect.type} ${effect.value || ''} ${effect.note || ''}`),
+    ...(nikke.buffEffects || []).map(
+      (effect) => `${effectTypeMap[effect.type]?.label || effect.type} ${effect.value || ''} ${getEffectTimingLabel(effect.timing)} ${effect.note || ''}`,
+    ),
   ]
     .join(' ')
     .toLowerCase()
@@ -463,6 +563,7 @@ const createEmptyEffect = () => ({
   skill: skillOptions[0],
   target: 'ally',
   type: buffEffectTypes[0].key,
+  timing: effectTimingOptions[0].value,
   value: '',
   note: '',
 });
@@ -487,6 +588,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState('');
   const [importingSkills, setImportingSkills] = useState(false);
+  const [importingFavoriteItemSkills, setImportingFavoriteItemSkills] = useState(false);
   const [importingDildoro, setImportingDildoro] = useState(false);
   const [importMessage, setImportMessage] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -579,6 +681,7 @@ function App() {
       manufacturer: form.manufacturer,
       classType: form.classType,
       burst: form.burst,
+      burstCooldown: form.burstCooldown,
       code: form.code,
       weapon: form.weapon,
       favoriteItemAvailable: Boolean(form.favoriteItemAvailable),
@@ -593,6 +696,7 @@ function App() {
           skill: effect.skill,
           target: effectTypeMap[effect.type]?.kind === 'debuff' ? 'enemy' : effect.target,
           type: effect.type,
+          timing: normalizeEffectTiming(effect.timing),
           value: String(effect.value).trim(),
           note: String(effect.note || '').trim(),
         })),
@@ -634,6 +738,7 @@ function App() {
       manufacturer: nikke.manufacturer,
       classType: nikke.classType,
       burst: nikke.burst,
+      burstCooldown: nikke.burstCooldown || '',
       code: nikke.code,
       weapon: nikke.weapon,
       favoriteItemAvailable: Boolean(nikke.favoriteItemAvailable),
@@ -641,7 +746,9 @@ function App() {
       skill1: nikke.skill1 || '',
       skill2: nikke.skill2 || '',
       burstSkill: nikke.burstSkill || '',
-      buffEffects: Array.isArray(nikke.buffEffects) ? nikke.buffEffects : [],
+      buffEffects: Array.isArray(nikke.buffEffects)
+        ? nikke.buffEffects.map((effect) => ({ ...effect, timing: normalizeEffectTiming(effect.timing) }))
+        : [],
       imageUrl: nikke.imageUrl || '',
       faceImageUrl: nikke.faceImageUrl || '',
       fullImageUrl: nikke.fullImageUrl || '',
@@ -785,6 +892,21 @@ function App() {
     }
   };
 
+  const importFavoriteItemSkillsFromNamuWiki = async () => {
+    try {
+      setImportingFavoriteItemSkills(true);
+      setImportMessage('');
+      const result = await requestJson('/import/namuwiki/favorite-item-skills', { method: 'POST' });
+      setNikkes(result.nikkes);
+      setApiError('');
+      setImportMessage(`애장품 ${result.imported}명 스킬 정보를 가져왔습니다.${result.failed ? ` 실패 ${result.failed}명` : ''}`);
+    } catch (error) {
+      setApiError(error.message);
+    } finally {
+      setImportingFavoriteItemSkills(false);
+    }
+  };
+
   const importNikkeData = async () => {
     try {
       setImportingDildoro(true);
@@ -840,48 +962,41 @@ function App() {
   };
 
   const showTooltip = (event, nikke) => {
-    const rect = event.currentTarget.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const tooltipWidth = Math.min(380, viewportWidth - 24);
-    const tooltipHeight = Math.min(420, viewportHeight - 24);
-    const x = Math.min(Math.max(rect.left + rect.width / 2, tooltipWidth / 2 + 12), viewportWidth - tooltipWidth / 2 - 12);
-    const showAbove = rect.bottom + tooltipHeight > viewportHeight && rect.top > tooltipHeight;
+    const viewportGap = 12;
+    const tooltipWidth = Math.min(980, viewportWidth - viewportGap * 2);
+    const fontSize = estimateSkillTooltipFontSize(nikke, tooltipWidth, viewportHeight);
 
     setTooltip({
       nikke,
-      x,
-      y: showAbove ? Math.max(12, rect.top - 8) : Math.min(rect.bottom + 8, viewportHeight - 12),
-      placement: showAbove ? 'top' : 'bottom',
+      width: tooltipWidth,
+      fontSize,
     });
   };
 
   const hideTooltip = () => setTooltip(null);
 
   const renderSkillTooltip = (nikke, className = 'skillTooltip') => (
-    <div className={className} role="tooltip">
+    <div className={`${className}${getSkillTooltipDensityClass(nikke)}`} role="tooltip">
       <strong>{displayNikkeName(nikke)}</strong>
-      {nikke.favoriteItemAvailable && (
-        <p>
-          <span>애장품</span>
-          전용 애장품 가능
-        </p>
-      )}
-      {skillTextFields.some((field) => nikke[field.name]) ? (
-        skillTextFields.map((field) =>
-          nikke[field.name] ? (
-            <p key={field.name}>
-              <span>{field.label}</span>
-              {nikke[field.name]}
-            </p>
-          ) : null,
-        )
-      ) : (
-        <p>
-          <span>스킬</span>
-          입력된 스킬 설명이 없습니다.
-        </p>
-      )}
+      <div className="skillTooltipBody">
+        {skillTextFields.some((field) => nikke[field.name]) ? (
+          skillTextFields.map((field) =>
+            nikke[field.name] ? (
+              <p key={field.name}>
+                <span>{getSkillFieldLabel(field, nikke)}</span>
+                {nikke[field.name]}
+              </p>
+            ) : null,
+          )
+        ) : (
+          <p>
+            <span>스킬</span>
+            입력된 스킬 설명이 없습니다.
+          </p>
+        )}
+      </div>
     </div>
   );
 
@@ -1025,18 +1140,28 @@ function App() {
         </div>
       )}
 
+      <div className="importActions" aria-label="데이터 가져오기">
+        <button type="button" className="button ghost" onClick={importNikkeData} disabled={importingDildoro}>
+          {importingDildoro ? 'NIKKE 데이터 가져오는 중' : 'NIKKE 데이터 가져오기'}
+        </button>
+        <button type="button" className="button ghost" onClick={importSsrSkillsFromNamuWiki} disabled={importingSkills}>
+          {importingSkills ? 'SSR 스킬 가져오는 중' : 'SSR 스킬 가져오기'}
+        </button>
+        <button
+          type="button"
+          className="button"
+          onClick={importFavoriteItemSkillsFromNamuWiki}
+          disabled={importingFavoriteItemSkills}
+        >
+          {importingFavoriteItemSkills ? '애장품 스킬 가져오는 중' : '애장품 스킬 가져오기'}
+        </button>
+      </div>
+
+      {importMessage && <p className="importMessage">{importMessage}</p>}
+
       <div className="squadWorkspace">
           <section className="panel squadPanel">
-            <div className="sectionHeader">
-              <div>
-                <h2>{activeCategoryDef.label}</h2>
-                <p>{activeSquadIndex + 1}편성 · {squad.length}/5명</p>
-              </div>
-              <button type="button" className="button ghost" onClick={clearSquad} disabled={!squad.length}>
-                현재 편성 비우기
-              </button>
-            </div>
-
+            
             <div className="categoryTabs" aria-label="콘텐츠 선택">
               {squadCategoryDefs.map((category) => {
                 const filledCount = (squadCategories[category.key] || []).filter((ids) => ids.length > 0).length;
@@ -1060,10 +1185,16 @@ function App() {
               })}
             </div>
 
+            <div className="sectionHeader">
+              <button type="button" className="button ghost" onClick={clearSquad} disabled={!squad.length}>
+                전체 스쿼드 편성 비우기
+              </button>
+            </div>
+
             <div className="squadStack">
               {categorySquads.map((ids, squadIndex) => {
                 const squadNikkes = ids.map((id) => nikkes.find((nikke) => nikke.id === id)).filter(Boolean);
-                const compositionChecks = analyzeSquadComposition(squadNikkes);
+                const compositionAnalysis = analyzeSquadComposition(squadNikkes);
                 const effectChecks = analyzeSquadEffects(squadNikkes);
                 const isActiveSquad = activeSquadIndex === squadIndex;
 
@@ -1074,7 +1205,7 @@ function App() {
                     onClick={() => setActiveSquadIndex(squadIndex)}
                   >
                     <div className="squadBlockHeader">
-                      <h3>{squadIndex + 1}편성</h3>
+                      <h3>{squadIndex + 1} 스쿼드</h3>
                       <button
                         type="button"
                         className="button ghost small"
@@ -1123,20 +1254,25 @@ function App() {
                       })}
                     </div>
 
-                    <details className="squadAnalysisDetails" defaultOpen={isActiveSquad}>
-                      <summary>구성/효과 체크</summary>
-                      <div className="squadAnalysisBody">
-                        <div className="compositionCheck">
-                          <h3>구성 체크</h3>
-                          <div className="checkList">
-                            {compositionChecks.map((check) => (
-                              <span key={check.label} className={check.passed ? 'passed' : 'failed'}>
-                                {check.passed ? '✓' : '•'} {check.label}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+                    <div className="compositionCheck compositionSummary">
+                      <h3>구성 체크</h3>
+                      <div className="checkList">
+                        {compositionAnalysis.checks.map((check) => (
+                          <span key={check.label} className={check.passed ? 'passed' : 'failed'}>
+                            {check.passed ? '✓' : '•'} {check.label}
+                          </span>
+                        ))}
+                        {compositionAnalysis.codeCounts.map(({ label, count }) => (
+                          <span key={label}>
+                            {label} {count}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
 
+                    <details className="squadAnalysisDetails" defaultOpen={isActiveSquad}>
+                      <summary>효과 체크</summary>
+                      <div className="squadAnalysisBody">
                         <div className="effectCheckGrid">
                           {[
                             ['버프 체크', effectChecks.buff, 'buffEffect'],
@@ -1145,17 +1281,24 @@ function App() {
                           ].map(([title, effects, className]) => (
                             <div key={title} className="compositionCheck effectCheck">
                               <h3>{title}</h3>
-                              <div className="checkList effectList">
+                              <div className="effectTimingGroupList">
                                 {effects.length ? (
-                                  effects.map((effect) => (
-                                    <span
-                                      key={`${effect.kind}-${effect.target}-${effect.label}-${effect.value}-${effect.duration || ''}-${effect.source}`}
-                                      className={className}
-                                    >
-                                      {effect.label}
-                                      {effect.value ? ` ${effect.value}` : ''}
-                                      {effect.duration ? ` (${effect.duration})` : ''} · {effect.target} · {effect.source}
-                                    </span>
+                                  groupEffectsByTiming(effects).map((group) => (
+                                    <div key={group.value} className="effectTimingGroup">
+                                      <strong>{group.label}</strong>
+                                      <div className="checkList effectList">
+                                        {group.effects.map((effect) => (
+                                          <span
+                                            key={`${effect.kind}-${effect.target}-${effect.label}-${effect.value}-${effect.duration || ''}-${effect.timing}-${effect.source}`}
+                                            className={className}
+                                          >
+                                            {effect.label}
+                                            {effect.value ? ` ${effect.value}` : ''}
+                                            {effect.duration ? ` (${effect.duration})` : ''} · {effect.source}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
                                   ))
                                 ) : (
                                   <span>없음</span>
@@ -1263,8 +1406,11 @@ function App() {
         </div>
       {tooltip && (
         <div
-          className={`floatingTooltip ${tooltip.placement === 'top' ? 'above' : ''}`}
-          style={{ left: tooltip.x, top: tooltip.y }}
+          className="floatingTooltip"
+          style={{
+            '--tooltip-width': `${tooltip.width}px`,
+            '--tooltip-font-size': `${tooltip.fontSize}px`,
+          }}
         >
           {renderSkillTooltip(tooltip.nikke, 'skillTooltip visible')}
         </div>

@@ -1,0 +1,46 @@
+{
+  "source": "https://dildoro.com/",
+  "collected_at_utc": "2026-09-07T07:19:05.889261+00:00",
+  "source_generated": "2026-09-06",
+  "requested_character_codes": [],
+  "requested_character_slugs": [],
+  "requested_character_names": [
+    "드레이크 : 그레이트 빌런"
+  ],
+  "character_count": 1,
+  "skill_level_row_count": 30,
+  "costume_count": 0,
+  "image_candidate_count": 2,
+  "excluded_image_prefixes": [
+    "image/icon/"
+  ],
+  "image_downloaded_or_existing": 2,
+  "image_failed": 0,
+  "api_used": false,
+  "raw_files": {
+    "profile_maps.json": {
+      "size": 74227,
+      "sha256": "3de09eb57ff189dd20cfba17d4e0b01d438f3fe36befc5608a6921365d901ba8"
+    },
+    "roster.json": {
+      "size": 467494,
+      "sha256": "2e754547a68cb4854940890252d72caf696b2a42ac80ac4e9620423922597513"
+    },
+    "arena.js": {
+      "size": 44174,
+      "sha256": "b1a934bd4d22b362260610b8b9d755a2356c1552eeb4283da06327a2c0bb2d1d"
+    },
+    "museum.json": {
+      "size": 96588,
+      "sha256": "07db256b33b9a2f918cef1bf7736628156421568c42eb99e1a2fc2acfe1e639e"
+    },
+    "robots.txt": {
+      "size": 2191,
+      "sha256": "463bc463b008e1ec5b975c1d82e85bd77fb182dc469fa079227e1142120e916c"
+    },
+    "app.js": {
+      "size": 940359,
+      "sha256": "3b9789c649e98ba7cb94704df547c11f83bf3b88d211cf24ffb2acba26fae1aa"
+    }
+  }
+}

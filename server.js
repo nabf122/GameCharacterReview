@@ -108,6 +108,7 @@ const columns = [
   'manufacturer',
   'classType',
   'burst',
+  'burstCooldown',
   'code',
   'weapon',
   'favoriteItemAvailable',
@@ -136,6 +137,11 @@ const sqlString = (value) => `'${String(value ?? '').replaceAll("'", "''")}'`;
 const serializeBuffEffects = (value) => JSON.stringify(Array.isArray(value) ? value : []);
 
 const boolText = (value) => (value ? '1' : '0');
+
+const normalizeCooldown = (value) => {
+  const cooldown = Number.parseFloat(String(value || '').replace(/[^\d.]/g, ''));
+  return Number.isFinite(cooldown) && cooldown > 0 ? String(Number.isInteger(cooldown) ? cooldown : cooldown) : '';
+};
 
 const valueForColumn = (nikke, column) => {
   if (column === 'buffEffects') {
@@ -187,6 +193,7 @@ const initDb = () => {
       manufacturer TEXT NOT NULL,
       classType TEXT NOT NULL,
       burst TEXT NOT NULL,
+      burstCooldown TEXT NOT NULL DEFAULT '',
       code TEXT NOT NULL,
       weapon TEXT NOT NULL,
       favoriteItemAvailable TEXT NOT NULL DEFAULT '0',
@@ -207,6 +214,11 @@ const initDb = () => {
       id INTEGER PRIMARY KEY
     );
   `);
+
+  const nikkeTableInfo = runSql('PRAGMA table_info(nikkes);', true);
+  if (!nikkeTableInfo.some((column) => column.name === 'burstCooldown')) {
+    runSql("ALTER TABLE nikkes ADD COLUMN burstCooldown TEXT NOT NULL DEFAULT '';");
+  }
 
   const squadTableInfo = runSql('PRAGMA table_info(squad_members);', true);
   const squadsTableInfo = runSql('PRAGMA table_info(squads);', true);
@@ -415,6 +427,7 @@ const sanitizeNikke = (input) => ({
   manufacturer: String(input.manufacturer || ''),
   classType: String(input.classType || ''),
   burst: String(input.burst || ''),
+  burstCooldown: normalizeCooldown(input.burstCooldown),
   code: String(input.code || ''),
   weapon: String(input.weapon || ''),
   favoriteItemAvailable: Boolean(input.favoriteItemAvailable),
@@ -550,25 +563,139 @@ const parseNamuWikiSkills = (html) => {
   };
 };
 
-const fetchNamuWikiSkills = async (name) => {
-  const titleName = namuWikiTitleAliases[name] || name;
-  const title = `${titleName}(승리의 여신: 니케)`;
-  const url = `https://namu.wiki/w/${encodeURIComponent(title)}`;
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 NikkeSquadBuilder/1.0',
-      Accept: 'text/html,application/xhtml+xml',
-    },
-  });
+const skillHeaderPattern = /(스킬\s*1\s+(?:패시브|액티브)|스킬\s*2\s+(?:패시브|액티브)|버스트\s*(?:I|Ⅱ|II|Ⅲ|III|1|2|3)\s*(?:패시브|액티브)?)/gu;
 
-  if (!response.ok) {
-    throw new Error(`나무위키 응답 오류 ${response.status}`);
+const fieldForSkillHeader = (header) => {
+  if (/스킬\s*1/u.test(header)) {
+    return 'skill1';
   }
 
-  const html = await response.text();
+  if (/스킬\s*2/u.test(header)) {
+    return 'skill2';
+  }
+
+  if (/버스트/u.test(header)) {
+    return 'burstSkill';
+  }
+
+  return '';
+};
+
+const cleanFavoriteItemSkillText = (header, text) => {
+  const blockEndMatch = text.search(
+    /\s(?:애장품|소장품)?\s*스킬\s*강화\s*순서|\s(?:애장품|소장품)\s*(?:평가|효율)|\s(?:상세|종합)?\s*평가\s/u,
+  );
+  const blockText = blockEndMatch >= 0 ? text.slice(0, blockEndMatch) : text;
+  const preferredText = blockText.match(/(?:변경\s*후|애장품\s*(?:장착|강화)\s*후|소장품\s*(?:장착|강화)\s*후)\s*(.+)$/u)?.[1] || blockText;
+  const cleaned = cleanSkillText(
+    preferredText
+      .replace(/변경\s*전[\s\S]*$/u, '')
+      .replace(/(?:변경\s*후|애장품\s*(?:장착|강화)\s*후|소장품\s*(?:장착|강화)\s*후)\s*/gu, '')
+      .trim(),
+  );
+
+  return cleaned ? `${header.replace(/\s+/g, ' ').trim()}\n${cleaned}` : '';
+};
+
+const parseSkillBlocksFromText = (text) => {
+  const matches = [...text.matchAll(skillHeaderPattern)];
+  const skills = {};
+
+  matches.forEach((match, index) => {
+    const header = match[0];
+    const field = fieldForSkillHeader(header);
+    const start = (match.index || 0) + header.length;
+    const end = matches[index + 1]?.index ?? text.length;
+    const value = cleanFavoriteItemSkillText(header, text.slice(start, end));
+
+    if (field && value && (!skills[field] || value.length > skills[field].length)) {
+      skills[field] = value;
+    }
+  });
+
+  return {
+    skill1: skills.skill1 || '',
+    skill2: skills.skill2 || '',
+    burstSkill: skills.burstSkill || '',
+  };
+};
+
+const extractFavoriteItemSections = (text) => {
+  const sections = [];
+  const favoritePattern = /(?:애장품|소장품)/gu;
+  const sectionEndPattern = /\s(?:\d+(?:\.\d+)*\.\s*)?(?:평가|대사|작중\s*행적|코스튬|상담|여담|둘러보기|관련\s*문서)\s*(?:\[편집\])?/u;
+
+  for (const match of text.matchAll(favoritePattern)) {
+    const sectionText = text.slice(match.index || 0);
+    const endMatch = sectionText.slice(match[0].length).match(sectionEndPattern);
+    const end = endMatch?.index === undefined ? Math.min(sectionText.length, 8000) : match[0].length + endMatch.index;
+    const section = sectionText.slice(0, end);
+
+    if (/스킬|버스트/u.test(section)) {
+      sections.push(section);
+    }
+  }
+
+  return sections;
+};
+
+const parseNamuWikiFavoriteItemSkills = (html) => {
+  const text = htmlToText(html);
+  const sections = extractFavoriteItemSections(text);
+  let best = { skill1: '', skill2: '', burstSkill: '' };
+
+  sections.forEach((section) => {
+    const skills = parseSkillBlocksFromText(section);
+    const score = Object.values(skills).filter(Boolean).length;
+    const bestScore = Object.values(best).filter(Boolean).length;
+
+    if (score > bestScore || (score === bestScore && Object.values(skills).join('').length > Object.values(best).join('').length)) {
+      best = skills;
+    }
+  });
+
+  return best;
+};
+
+const fetchNamuWikiHtml = async (name) => {
+  const titleName = namuWikiTitleAliases[name] || name;
+  const titles = [`${titleName}(승리의 여신: 니케)`, titleName];
+  let lastStatus = 0;
+
+  for (const title of titles) {
+    const url = `https://namu.wiki/w/${encodeURIComponent(title)}`;
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 NikkeSquadBuilder/1.0',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+    });
+
+    if (response.ok) {
+      return { html: await response.text(), url };
+    }
+
+    lastStatus = response.status;
+  }
+
+  throw new Error(`나무위키 응답 오류 ${lastStatus}`);
+};
+
+const fetchNamuWikiSkills = async (name) => {
+  const { html, url } = await fetchNamuWikiHtml(name);
   const skills = parseNamuWikiSkills(html);
   if (!skills.skill1 && !skills.skill2 && !skills.burstSkill) {
     throw new Error('스킬 표를 찾지 못했습니다.');
+  }
+
+  return { ...skills, sourceUrl: url };
+};
+
+const fetchNamuWikiFavoriteItemSkills = async (name) => {
+  const { html, url } = await fetchNamuWikiHtml(name);
+  const skills = parseNamuWikiFavoriteItemSkills(html);
+  if (!skills.skill1 && !skills.skill2 && !skills.burstSkill) {
+    throw new Error('애장품/소장품 스킬 섹션을 찾지 못했습니다.');
   }
 
   return { ...skills, sourceUrl: url };
@@ -591,6 +718,44 @@ const importNamuWikiSsrSkills = async () => {
       results.push({ id: nikke.id, name: nikke.name, ok: true, sourceUrl: skills.sourceUrl });
     } catch (error) {
       results.push({ id: nikke.id, name: nikke.name, ok: false, error: error.message });
+    }
+  }
+
+  return results;
+};
+
+const importNamuWikiFavoriteItemSkills = async () => {
+  const favoriteItemReference = loadFavoriteItemReference();
+  const favoriteNames = [...favoriteItemReference.names].sort((a, b) => a.localeCompare(b, 'ko'));
+  const nikkesByName = new Map(runSql('SELECT id, name FROM nikkes ORDER BY id;', true).map((nikke) => [nikke.name, nikke]));
+  const results = [];
+
+  for (const name of favoriteNames) {
+    const nikke = nikkesByName.get(name);
+
+    if (!nikke) {
+      results.push({ name, ok: false, error: 'DB에 캐릭터가 없습니다.' });
+      continue;
+    }
+
+    try {
+      const skills = await fetchNamuWikiFavoriteItemSkills(name);
+      const assignments = ['skill1', 'skill2', 'burstSkill']
+        .filter((field) => skills[field])
+        .map((field) => `${field} = ${sqlString(skills[field])}`);
+
+      if (!assignments.length) {
+        throw new Error('업데이트할 애장품 스킬이 없습니다.');
+      }
+
+      runSql(`
+        UPDATE nikkes
+        SET ${assignments.join(', ')}
+        WHERE id = ${Number(nikke.id)};
+      `);
+      results.push({ id: nikke.id, name, ok: true, updatedFields: assignments.length, sourceUrl: skills.sourceUrl });
+    } catch (error) {
+      results.push({ id: nikke.id, name, ok: false, error: error.message });
     }
   }
 
@@ -711,10 +876,16 @@ const loadNikkeData = () => {
   skills
     .filter((skill) => skill.level === '10')
     .forEach((skill) => {
-      if (!level10Skills.has(skill.character_code)) {
-        level10Skills.set(skill.character_code, {});
+      const skillKey = skill.character_code || skill.character_name;
+
+      if (!skillKey) {
+        return;
       }
-      level10Skills.get(skill.character_code)[skill.skill_no] = skill;
+
+      if (!level10Skills.has(skillKey)) {
+        level10Skills.set(skillKey, {});
+      }
+      level10Skills.get(skillKey)[skill.skill_no] = skill;
     });
 
   return { characters, level10Skills, favoriteItemReference };
@@ -722,7 +893,7 @@ const loadNikkeData = () => {
 
 const getSkillSetForCharacter = (character, level10Skills, favoriteItemReference) => {
   const favoriteSkillCode = favoriteItemReference.skillCodeByName.get(character.name);
-  return level10Skills.get(favoriteSkillCode) || level10Skills.get(character.code) || {};
+  return level10Skills.get(favoriteSkillCode) || level10Skills.get(character.code) || level10Skills.get(character.name) || {};
 };
 
 const sourceCharacterToNikke = (character, level10Skills, favoriteItemReference) => {
@@ -742,6 +913,7 @@ const sourceCharacterToNikke = (character, level10Skills, favoriteItemReference)
     manufacturer: normalizeNikkeCorporation(character.corporation),
     classType: character.class,
     burst: nikkeBurstMap[character.burst_stage] || nikkeBurstMap[character.burst] || '버스트 I',
+    burstCooldown: normalizeCooldown(character.cooldown),
     code: character.element,
     weapon: character.weapon,
     favoriteItemAvailable,
@@ -912,6 +1084,21 @@ const server = createServer(async (request, response) => {
         results,
         nikkes,
         source: 'https://namu.wiki/',
+        license: 'CC BY-NC-SA 2.0 KR',
+      });
+      return;
+    }
+
+    if (request.method === 'POST' && path === '/api/import/namuwiki/favorite-item-skills') {
+      const results = await importNamuWikiFavoriteItemSkills();
+      const nikkes = normalizeNikkes(runSql('SELECT * FROM nikkes ORDER BY id DESC;', true));
+      sendJson(response, 200, {
+        imported: results.filter((result) => result.ok).length,
+        failed: results.filter((result) => !result.ok).length,
+        results,
+        nikkes,
+        source: 'https://namu.wiki/',
+        sourceList: 'data/uploads/nikke/tables/calculation_reference.json',
         license: 'CC BY-NC-SA 2.0 KR',
       });
       return;
